@@ -99,3 +99,78 @@ Todas las claves API están almacenadas de forma segura en Secret Manager y est�
 ## Conclusión
 
 El despliegue de NubemGenesis V1.1 en Google Cloud Platform ha sido completado con éxito. El servicio está operativo y accesible a través de la URL proporcionada por Cloud Run. Para cualquier consulta o soporte adicional, puede contactar con el equipo de NubemGenesis.
+## Actualización sobre el Dominio
+
+### Estado Actual (15 de Mayo, 2025)
+
+✅ **Nameservers actualizados**: Los nameservers de nubemgenesis.ai han sido cambiados a los de GoDaddy (ns59.domaincontrol.com y ns60.domaincontrol.com).
+
+✅ **Registro TXT preparado**: Se ha creado un registro TXT para la verificación de Google (actualmente con un código provisional).
+
+✅ **API accesible**: La configuración DNS ahora es accesible a través de la API de GoDaddy.
+
+### Pasos para Completar la Verificación y Mapeo
+
+Se ha preparado un script automatizado para facilitar el proceso:
+
+```bash
+chmod +x /root/NubemGenesis.V.1.1/verify_domain.sh
+/root/NubemGenesis.V.1.1/verify_domain.sh
+```
+
+Este script guiará paso a paso por el proceso de:
+1. Verificar que los nameservers están correctamente configurados
+2. Configurar el registro TXT de verificación en GoDaddy
+3. Verificar el dominio en Google Cloud
+4. Mapear el dominio al servicio de Cloud Run
+5. Configurar los registros DNS finales (A y CNAME)
+
+Si prefieres realizar el proceso manualmente, sigue estos pasos:
+
+1. **Verificar el dominio en Google Cloud**:
+   ```bash
+   gcloud domains verify nubemgenesis.ai
+   ```
+   Esto abrirá una página web donde deberás obtener el código de verificación.
+
+2. **Configurar el registro TXT en GoDaddy**:
+   ```bash
+   VERIFICATION_CODE="google-site-verification=CÓDIGO_OBTENIDO"
+   curl -X PUT -H "Authorization: sso-key GODADDY_API_KEY:GODADDY_API_SECRET" \
+     -H "Content-Type: application/json" \
+     -d "[{\"data\": \"$VERIFICATION_CODE\", \"name\": \"@\", \"ttl\": 600, \"type\": \"TXT\"}]" \
+     "https://api.godaddy.com/v1/domains/nubemgenesis.ai/records/TXT/@"
+   ```
+
+3. **Mapear el dominio verificado**:
+   ```bash
+   gcloud beta run domain-mappings create --service=nubemgenesis --domain=nubemgenesis.ai --region=us-central1
+   ```
+
+4. **Configurar los registros DNS finales**:
+   ```bash
+   # Obtener las IPs para los registros A
+   gcloud beta run domain-mappings describe --domain=nubemgenesis.ai --region=us-central1
+   
+   # Configurar los registros A con las IPs obtenidas
+   curl -X PUT -H "Authorization: sso-key GODADDY_API_KEY:GODADDY_API_SECRET" \
+     -H "Content-Type: application/json" \
+     -d "[{\"data\": \"IP1\", \"name\": \"@\", \"ttl\": 600, \"type\": \"A\"},{\"data\": \"IP2\", \"name\": \"@\", \"ttl\": 600, \"type\": \"A\"}]" \
+     "https://api.godaddy.com/v1/domains/nubemgenesis.ai/records/A/@"
+   
+   # Configurar el CNAME para www
+   curl -X PUT -H "Authorization: sso-key GODADDY_API_KEY:GODADDY_API_SECRET" \
+     -H "Content-Type: application/json" \
+     -d "[{\"data\": \"nubemgenesis.ai.\", \"name\": \"www\", \"ttl\": 600, \"type\": \"CNAME\"}]" \
+     "https://api.godaddy.com/v1/domains/nubemgenesis.ai/records/CNAME/www"
+   ```
+
+### Documentación Adicional
+
+Se ha creado documentación detallada en:
+- `/root/NubemGenesis.V.1.1/verificacion_dominio_actualizada.md`: Instrucciones paso a paso con mayor detalle
+- `/root/NubemGenesis.V.1.1/manual_verification.md`: Guía para verificación manual
+
+La propagación DNS completa puede tardar hasta 24-48 horas, aunque generalmente es más rápida. Una vez finalizada, la aplicación estará accesible en:
+- https://nubemgenesis.ai
+- https://www.nubemgenesis.ai
