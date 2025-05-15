@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+# Instalar dependencias necesarias
+RUN apk add --update --no-cache libc6-compat python3 make g++
+
+WORKDIR /app
+
+# Copiar package.json y pnpm-lock.yaml
+COPY package.json ./
+RUN npm install
+
+# Copiar el resto de los archivos
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

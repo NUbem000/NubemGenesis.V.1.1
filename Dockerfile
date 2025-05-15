@@ -1,38 +1,35 @@
-# Build local monorepo image
-# docker build --no-cache -t nubemgenesis .
-
-# Run image
-# docker run -d -p 3000:3000 nubemgenesis
-
 FROM node:20-alpine
-RUN apk add --update libc6-compat python3 make g++
-# needed for pdfjs-dist
-RUN apk add --no-cache build-base cairo-dev pango-dev
 
-# Install Chromium
-RUN apk add --no-cache chromium
+# Instalar dependencias necesarias
+RUN apk add --update --no-cache libc6-compat python3 make g++ cairo-dev pango-dev build-base curl
 
-# Install curl for container-level health checks
-# Fixes: https://github.com/NubemGenesis/NubemGenesis/issues/4126
-RUN apk add --no-cache curl
+# Configurar entorno
+WORKDIR /app
+ENV NODE_ENV=production
 
-#install PNPM globaly
+# Instalar pnpm
 RUN npm install -g pnpm
 
-ENV PUPPETEER_SKIP_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 
-ENV NODE_OPTIONS=--max-old-space-size=8192
+# Configurar workspaces
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+COPY packages/components/package.json ./packages/components/
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
 
-WORKDIR /usr/src
+# Instalar dependencias
+RUN pnpm install --frozen-lockfile
 
-# Copy app source
+# Copiar código fuente
 COPY . .
 
-RUN pnpm install
-
+# Construir la aplicación
 RUN pnpm build
 
+# Exponer puerto (Cloud Run configurará la variable PORT automáticamente)
 EXPOSE 3000
 
-CMD [ "pnpm", "start" ]
+# Comando para iniciar la aplicación
+CMD ["pnpm", "start"]

@@ -1,0 +1,24 @@
+Para verificar el dominio nubemgenesis.ai en Google Cloud y mapearlo al servicio de Cloud Run:
+
+1. Accede al panel de control de GoDaddy para el dominio nubemgenesis.ai
+
+2. Agrega un registro TXT:
+   - Nombre/Host: @ (o deja en blanco para el dominio raíz)
+   - Valor: google-site-verification=CÓDIGO_DE_VERIFICACIÓN
+   * Nota: El código de verificación se obtiene al ejecutar:
+     gcloud domains verify nubemgenesis.ai
+
+3. Una vez verificado el dominio, agrega los siguientes registros DNS:
+
+   a. Registros A para mapear el dominio raíz:
+      - Nombre/Host: @ (o deja en blanco)
+      - Direcciones IP: (se obtienen de Google Cloud Run después de intentar crear el mapeo)
+
+   b. Registro CNAME para mapear www:
+      - Nombre/Host: www
+      - Valor: nubemgenesis.ai.
+
+4. Espera a que se propaguen los cambios DNS (puede tardar hasta 48 horas)
+
+5. Después de la verificación, mapea el dominio al servicio:
+   gcloud beta run domain-mappings create --service=nubemgenesis --domain=nubemgenesis.ai --region=us-central1
