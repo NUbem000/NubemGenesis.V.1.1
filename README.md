@@ -1,169 +1,163 @@
 <!-- markdownlint-disable MD030 -->
 
 <p align="center">
-<img src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_white.svg#gh-light-mode-only">
-<img src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_dark.svg#gh-dark-mode-only">
+<img src="https://nubemgenesis.com/images/nubemgenesis_logo.png">
 </p>
 
-[![Release Notes](https://img.shields.io/github/release/FlowiseAI/Flowise)](https://github.com/FlowiseAI/Flowise/releases)
-[![Discord](https://img.shields.io/discord/1087698854775881778?label=Discord&logo=discord)](https://discord.gg/jbaHfsRVBW)
-[![Twitter Follow](https://img.shields.io/twitter/follow/FlowiseAI?style=social)](https://twitter.com/FlowiseAI)
-[![GitHub star chart](https://img.shields.io/github/stars/FlowiseAI/Flowise?style=social)](https://star-history.com/#FlowiseAI/Flowise)
-[![GitHub fork](https://img.shields.io/github/forks/FlowiseAI/Flowise?style=social)](https://github.com/FlowiseAI/Flowise/fork)
+[![Release Notes](https://img.shields.io/github/release/NubemGenesis/NubemGenesis)](https://github.com/NubemGenesis/NubemGenesis/releases)
+[![Discord](https://img.shields.io/discord/1087698854775881778?label=Discord&logo=discord)](https://discord.gg/nubemgenesis)
 
-English | [繁體中文](./i18n/README-TW.md) | [简体中文](./i18n/README-ZH.md) | [日本語](./i18n/README-JA.md) | [한국어](./i18n/README-KR.md)
+Español | English
 
-<h3>Build AI Agents, Visually</h3>
-<a href="https://github.com/FlowiseAI/Flowise">
-<img width="100%" src="https://github.com/FlowiseAI/Flowise/blob/main/images/flowise_agentflow.gif?raw=true"></a>
+<h3>Plataforma Avanzada de Agentes de IA</h3>
+<img width="100%" src="https://nubemgenesis.com/images/nubemgenesis_demo.gif"></a>
 
-## ⚡Quick Start
+## ⚡Inicio Rápido
 
-Download and Install [NodeJS](https://nodejs.org/en/download) >= 18.15.0
+Descargue e Instale [NodeJS](https://nodejs.org/en/download) >= 18.15.0
 
-1. Install Flowise
+1. Instalar NubemGenesis
     ```bash
-    npm install -g flowise
+    npm install -g nubemgenesis
     ```
-2. Start Flowise
+2. Iniciar NubemGenesis
 
     ```bash
-    npx flowise start
+    npx nubemgenesis start
     ```
 
-    With username & password
+    Con usuario y contraseña
 
     ```bash
-    npx flowise start --FLOWISE_USERNAME=user --FLOWISE_PASSWORD=1234
+    npx nubemgenesis start --FLOWISE_USERNAME=usuario --FLOWISE_PASSWORD=contraseña
     ```
 
-3. Open [http://localhost:3000](http://localhost:3000)
+3. Abrir [http://localhost:3000](http://localhost:3000)
 
 ## 🐳 Docker
 
 ### Docker Compose
 
-1. Clone the Flowise project
-2. Go to `docker` folder at the root of the project
-3. Copy `.env.example` file, paste it into the same location, and rename to `.env` file
-4. `docker compose up -d`
-5. Open [http://localhost:3000](http://localhost:3000)
-6. You can bring the containers down by `docker compose stop`
+1. Clonar el proyecto NubemGenesis
+2. Ir a la carpeta `docker` en la raíz del proyecto
+3. Copiar el archivo `.env.example`, pegarlo en la misma ubicación y renombrarlo a `.env`
+4. Ejecutar `docker compose up -d`
+5. Abrir [http://localhost:3000](http://localhost:3000)
+6. Se pueden detener los contenedores con `docker compose stop`
 
-### Docker Image
+### Imagen Docker
 
-1. Build the image locally:
+1. Construir la imagen localmente:
     ```bash
-    docker build --no-cache -t flowise .
+    docker build --no-cache -t nubemgenesis .
     ```
-2. Run image:
+2. Ejecutar la imagen:
 
     ```bash
-    docker run -d --name flowise -p 3000:3000 flowise
-    ```
-
-3. Stop image:
-    ```bash
-    docker stop flowise
+    docker run -d --name nubemgenesis -p 3000:3000 nubemgenesis
     ```
 
-## 👨‍💻 Developers
+3. Detener la imagen:
+    ```bash
+    docker stop nubemgenesis
+    ```
 
-Flowise has 3 different modules in a single mono repository.
+## 👨‍💻 Desarrolladores
 
--   `server`: Node backend to serve API logics
--   `ui`: React frontend
--   `components`: Third-party nodes integrations
--   `api-documentation`: Auto-generated swagger-ui API docs from express
+NubemGenesis tiene 3 módulos diferentes en un único monorepo:
 
-### Prerequisite
+-   `server`: Backend en Node para la lógica de API
+-   `ui`: Frontend en React
+-   `components`: Integraciones de nodos de terceros
+-   `api-documentation`: Documentación API autogenerada con swagger-ui desde express
 
--   Install [PNPM](https://pnpm.io/installation)
+### Prerrequisitos
+
+-   Instalar [PNPM](https://pnpm.io/installation)
     ```bash
     npm i -g pnpm
     ```
 
-### Setup
+### Configuración
 
-1.  Clone the repository
-
-    ```bash
-    git clone https://github.com/FlowiseAI/Flowise.git
-    ```
-
-2.  Go into repository folder
+1.  Clonar el repositorio
 
     ```bash
-    cd Flowise
+    git clone https://github.com/NubemGenesis/NubemGenesis.git
     ```
 
-3.  Install all dependencies of all modules:
+2.  Ir a la carpeta del repositorio
+
+    ```bash
+    cd NubemGenesis
+    ```
+
+3.  Instalar todas las dependencias de todos los módulos:
 
     ```bash
     pnpm install
     ```
 
-4.  Build all the code:
+4.  Compilar todo el código:
 
     ```bash
     pnpm build
     ```
 
     <details>
-    <summary>Exit code 134 (JavaScript heap out of memory)</summary>  
-      If you get this error when running the above `build` script, try increasing the Node.js heap size and run the script again:
+    <summary>Código de salida 134 (JavaScript heap out of memory)</summary>  
+      Si obtienes este error al ejecutar el script `build`, intenta aumentar el tamaño del heap de Node.js y ejecuta el script nuevamente:
 
         export NODE_OPTIONS="--max-old-space-size=4096"
         pnpm build
 
     </details>
 
-5.  Start the app:
+5.  Iniciar la aplicación:
 
     ```bash
     pnpm start
     ```
 
-    You can now access the app on [http://localhost:3000](http://localhost:3000)
+    Ahora puedes acceder a la aplicación en [http://localhost:3000](http://localhost:3000)
 
-6.  For development build:
+6.  Para desarrollo:
 
-    -   Create `.env` file and specify the `VITE_PORT` (refer to `.env.example`) in `packages/ui`
-    -   Create `.env` file and specify the `PORT` (refer to `.env.example`) in `packages/server`
-    -   Run
+    -   Crea un archivo `.env` y especifica `VITE_PORT` (consulta `.env.example`) en `packages/ui`
+    -   Crea un archivo `.env` y especifica `PORT` (consulta `.env.example`) en `packages/server`
+    -   Ejecuta
 
         ```bash
         pnpm dev
         ```
 
-    Any code changes will reload the app automatically on [http://localhost:8080](http://localhost:8080)
+    Cualquier cambio en el código recargará la aplicación automáticamente en [http://localhost:8080](http://localhost:8080)
 
-## 🔒 Authentication
+## 🔒 Autenticación
 
-To enable app level authentication, add `FLOWISE_USERNAME` and `FLOWISE_PASSWORD` to the `.env` file in `packages/server`:
+Para habilitar la autenticación a nivel de aplicación, agrega `FLOWISE_USERNAME` y `FLOWISE_PASSWORD` al archivo `.env` en `packages/server`:
 
 ```
-FLOWISE_USERNAME=user
-FLOWISE_PASSWORD=1234
+FLOWISE_USERNAME=usuario
+FLOWISE_PASSWORD=contraseña
 ```
 
-## 🌱 Env Variables
+## 🌱 Variables de Entorno
 
-Flowise support different environment variables to configure your instance. You can specify the following variables in the `.env` file inside `packages/server` folder. Read [more](https://github.com/FlowiseAI/Flowise/blob/main/CONTRIBUTING.md#-env-variables)
+NubemGenesis admite diferentes variables de entorno para configurar tu instancia. Puedes especificar las siguientes variables en el archivo `.env` dentro de la carpeta `packages/server`. Lee [más](https://github.com/NubemGenesis/NubemGenesis/blob/main/CONTRIBUTING.md#-env-variables)
 
-## 📖 Documentation
+## 📖 Documentación
 
-[Flowise Docs](https://docs.flowiseai.com/)
+[Documentación de NubemGenesis](https://docs.nubemgenesis.com/)
 
-## 🌐 Self Host
+## 🌐 Auto-Hospedaje
 
-Deploy Flowise self-hosted in your existing infrastructure, we support various [deployments](https://docs.flowiseai.com/configuration/deployment)
+Implementa NubemGenesis en tu infraestructura existente, soportamos varios tipos de [despliegues](https://docs.nubemgenesis.com/configuracion/deployment)
 
--   [AWS](https://docs.flowiseai.com/configuration/deployment/aws)
--   [Azure](https://docs.flowiseai.com/configuration/deployment/azure)
--   [Digital Ocean](https://docs.flowiseai.com/configuration/deployment/digital-ocean)
--   [GCP](https://docs.flowiseai.com/configuration/deployment/gcp)
--   [Alibaba Cloud](https://computenest.console.aliyun.com/service/instance/create/default?type=user&ServiceName=Flowise社区版)
+-   [AWS](https://docs.nubemgenesis.com/configuracion/deployment/aws)
+-   [Azure](https://docs.nubemgenesis.com/configuracion/deployment/azure)
+-   [Digital Ocean](https://docs.nubemgenesis.com/configuracion/deployment/digital-ocean)
+-   [GCP](https://docs.nubemgenesis.com/configuracion/deployment/gcp)
 -   <details>
       <summary>Others</summary>
 
@@ -193,25 +187,24 @@ Deploy Flowise self-hosted in your existing infrastructure, we support various [
 
       </details>
 
-## ☁️ Flowise Cloud
+## ☁️ NubemGenesis Cloud
 
-[Get Started with Flowise Cloud](https://flowiseai.com/)
+[Comienza con NubemGenesis Cloud](https://nubemgenesis.com/)
 
-## 🙋 Support
+## 🙋 Soporte
 
-Feel free to ask any questions, raise problems, and request new features in [discussion](https://github.com/FlowiseAI/Flowise/discussions)
+Siéntete libre de hacer cualquier pregunta, reportar problemas y solicitar nuevas funciones en [discusiones](https://github.com/NubemGenesis/NubemGenesis/discussions)
 
-## 🙌 Contributing
+## 🙌 Contribuciones
 
-Thanks go to these awesome contributors
+Agradecimientos a todos los fantásticos colaboradores
 
-<a href="https://github.com/FlowiseAI/Flowise/graphs/contributors">
-<img src="https://contrib.rocks/image?repo=FlowiseAI/Flowise" />
+<a href="https://github.com/NubemGenesis/NubemGenesis/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=NubemGenesis/NubemGenesis" />
 </a>
 
-See [contributing guide](CONTRIBUTING.md). Reach out to us at [Discord](https://discord.gg/jbaHfsRVBW) if you have any questions or issues.
-[![Star History Chart](https://api.star-history.com/svg?repos=FlowiseAI/Flowise&type=Timeline)](https://star-history.com/#FlowiseAI/Flowise&Date)
+Consulta la [guía de contribución](CONTRIBUTING.md). Contáctanos en [Discord](https://discord.gg/nubemgenesis) si tienes alguna pregunta o problema.
 
-## 📄 License
+## 📄 Licencia
 
-Source code in this repository is made available under the [Apache License Version 2.0](LICENSE.md).
+El código fuente en este repositorio está disponible bajo [Apache License Version 2.0](LICENSE.md).

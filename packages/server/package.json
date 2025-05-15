@@ -1,11 +1,11 @@
 {
-    "name": "flowise",
+    "name": "nubemgenesis-server",
     "version": "3.0.0",
-    "description": "Flowiseai Server",
+    "description": "NubemGenesis Server",
     "main": "dist/index",
     "types": "dist/index.d.ts",
     "bin": {
-        "flowise": "./bin/run"
+        "nubemgenesis": "./bin/run"
     },
     "files": [
         "bin",
@@ -16,7 +16,7 @@
         "oauth2.html"
     ],
     "oclif": {
-        "bin": "flowise",
+        "bin": "nubemgenesis",
         "commands": "./dist/commands"
     },
     "scripts": {
@@ -46,10 +46,10 @@
         "test": "jest"
     },
     "keywords": [],
-    "homepage": "https://flowiseai.com",
+    "homepage": "https://nubemgenesis.com",
     "author": {
-        "name": "Henry Heng",
-        "email": "henryheng@flowiseai.com"
+        "name": "NubemGenesis Team",
+        "email": "info@nubemgenesis.com"
     },
     "engines": {
         "node": ">=18.15.0 <19.0.0 || ^20"
@@ -86,8 +86,8 @@
         "express": "^4.17.3",
         "express-basic-auth": "^1.2.1",
         "express-rate-limit": "^6.9.0",
-        "flowise-components": "workspace:^",
-        "flowise-ui": "workspace:^",
+        "nubemgenesis-components": "workspace:^",
+        "nubemgenesis-ui": "workspace:^",
         "global-agent": "^3.0.0",
         "http-errors": "^2.0.0",
         "http-status-codes": "^2.3.0",
@@ -99,7 +99,7 @@
         "multer-cloud-storage": "^4.0.0",
         "multer-s3": "^3.0.1",
         "mysql2": "^3.11.3",
-        "flowise-nim-container-manager": "^1.0.11",
+        "nubemgenesis-nim-container-manager": "^1.0.11",
         "openai": "^4.96.0",
         "pg": "^8.11.1",
         "posthog-node": "^3.5.0",

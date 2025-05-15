@@ -1,8 +1,8 @@
 version: '3.1'
 
 services:
-    flowise:
-        image: flowiseai/flowise
+    nubemgenesis:
+        image: nubemgenesis/nubemgenesis
         restart: always
         environment:
             - PORT=${PORT}
@@ -59,5 +59,5 @@ services:
             retries: 5
             start_period: 30s
         volumes:
-            - ~/.flowise:/root/.flowise
-        entrypoint: /bin/sh -c "sleep 3; flowise start"
+            - ~/.nubemgenesis:/root/.nubemgenesis
+        entrypoint: /bin/sh -c "sleep 3; nubemgenesis start"

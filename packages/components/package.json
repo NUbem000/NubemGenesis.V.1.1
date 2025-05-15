@@ -1,7 +1,7 @@
 {
-    "name": "flowise-components",
+    "name": "nubemgenesis-components",
     "version": "3.0.0",
-    "description": "Flowiseai Components",
+    "description": "NubemGenesis Components",
     "main": "dist/src/index",
     "types": "dist/src/index.d.ts",
     "scripts": {
@@ -11,10 +11,10 @@
         "nuke": "rimraf dist node_modules .turbo"
     },
     "keywords": [],
-    "homepage": "https://flowiseai.com",
+    "homepage": "https://nubemgenesis.com",
     "author": {
-        "name": "Henry Heng",
-        "email": "henryheng@flowiseai.com"
+        "name": "NubemGenesis Team",
+        "email": "info@nubemgenesis.com"
     },
     "license": "SEE LICENSE IN LICENSE.md",
     "dependencies": {

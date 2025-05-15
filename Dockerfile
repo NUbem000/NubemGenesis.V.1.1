@@ -1,8 +1,8 @@
 # Build local monorepo image
-# docker build --no-cache -t  flowise .
+# docker build --no-cache -t nubemgenesis .
 
 # Run image
-# docker run -d -p 3000:3000 flowise
+# docker run -d -p 3000:3000 nubemgenesis
 
 FROM node:20-alpine
 RUN apk add --update libc6-compat python3 make g++
@@ -13,7 +13,7 @@ RUN apk add --no-cache build-base cairo-dev pango-dev
 RUN apk add --no-cache chromium
 
 # Install curl for container-level health checks
-# Fixes: https://github.com/FlowiseAI/Flowise/issues/4126
+# Fixes: https://github.com/NubemGenesis/NubemGenesis/issues/4126
 RUN apk add --no-cache curl
 
 #install PNPM globaly

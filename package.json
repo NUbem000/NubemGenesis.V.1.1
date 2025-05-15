@@ -1,11 +1,11 @@
 {
-    "name": "flowise",
-    "version": "3.0.0",
+    "name": "nubemgenesis",
+    "version": "1.1.0",
     "private": true,
-    "homepage": "https://flowiseai.com",
+    "homepage": "https://nubemgenesis.com",
     "workspaces": [
         "packages/*",
-        "flowise",
+        "nubemgenesis",
         "ui",
         "components",
         "api-documentation"
