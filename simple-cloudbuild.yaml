@@ -1,0 +1,33 @@
+steps:
+  # Usar la imagen simple de prueba
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nubemgenesis'
+      - '--image'
+      - 'us-docker.pkg.dev/cloudrun/container/hello'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--service-account'
+      - 'nubemgenesis-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--add-cloudsql-instances'
+      - '${PROJECT_ID}:us-central1:nubemgenesis-db'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,FLOWISE_HOST=0.0.0.0,FLOWISE_PORT=3000'
+      - '--min-instances'
+      - '1'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '1'
+      - '--concurrency'
+      - '80'
+      - '--port'
+      - '8080'
+
+timeout: '1200s'

@@ -1,0 +1,46 @@
+VERIFICACIÓN DEL DOMINIO NUBEMGENESIS.AI
+
+SITUACIÓN ACTUAL:
+- El dominio nubemgenesis.ai está registrado correctamente en GoDaddy
+- El servicio de Cloud Run "nubemgenesis" está funcionando en https://nubemgenesis-zqvgtbn4ya-uc.a.run.app
+- Los nameservers del dominio están configurados a NS1 (dns1.p09.nsone.net, etc.)
+- No se ha podido acceder a la zona DNS a través de la API de GoDaddy
+
+PASOS PARA COMPLETAR LA VERIFICACIÓN MANUALMENTE:
+
+1. VERIFICACIÓN DEL DOMINIO EN GOOGLE CLOUD:
+   - Abre la página de verificación: https://search.google.com/search-console/welcome
+   - Ingresa nubemgenesis.ai como prefijo de dominio
+   - Google te proporcionará un código de verificación en formato "google-site-verification=XXXXX"
+   - Copia este código
+
+2. CONFIGURA EL REGISTRO TXT EN GODADDY:
+   - Accede al panel de control de GoDaddy
+   - Ve a Mis Dominios > nubemgenesis.ai > DNS
+   - Añade un registro TXT:
+     * Tipo: TXT
+     * Nombre: @ (o deja en blanco)
+     * Valor: google-site-verification=XXXXX (el código que copiaste)
+     * TTL: 600 o 1 hora
+   - Guarda los cambios
+
+3. COMPLETA LA VERIFICACIÓN EN GOOGLE:
+   - Regresa a la página de verificación de Google
+   - Haz clic en "Verificar"
+   - Espera a que Google confirme la verificación (puede tardar unos minutos)
+
+4. MAPEA EL DOMINIO A CLOUD RUN:
+   - Una vez verificado, ejecuta:
+     ```
+     gcloud beta run domain-mappings create --service=nubemgenesis --domain=nubemgenesis.ai --region=us-central1
+     ```
+
+5. CONFIGURA LOS REGISTROS DNS FINALES:
+   - Ejecuta para obtener los registros necesarios:
+     ```
+     gcloud beta run domain-mappings describe --domain=nubemgenesis.ai --region=us-central1
+     ```
+   - Añade los registros A proporcionados a la configuración DNS de GoDaddy
+   - Añade un registro CNAME para www que apunte a nubemgenesis.ai
+
+IMPORTANTE: La propagación DNS puede tardar hasta 24-48 horas. Una vez completada, podrás acceder a tu aplicación en https://nubemgenesis.ai

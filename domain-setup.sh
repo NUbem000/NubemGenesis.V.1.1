@@ -1,4 +1,4 @@
-#\!/bin/bash
+#!/bin/bash
 
 # Script para configurar un dominio personalizado en Cloud Run
 # y configurar registros DNS en GoDaddy
@@ -6,10 +6,10 @@
 # Cargar secretos desde Secret Manager
 GODADDY_API_KEY=$(gcloud secrets versions access latest --secret=GODADDY_API_KEY)
 GODADDY_API_SECRET=$(gcloud secrets versions access latest --secret=GODADDY_API_SECRET)
-DOMAIN_NAME=$(gcloud secrets versions access latest --secret=DOMAIN_NAME)
 PROJECT_ID="nubemgenesis-v1-1"
 SERVICE_NAME="nubemgenesis"
 REGION="us-central1"
+DOMAIN_NAME="nubemgenesis.ai"
 
 # Obtener la URL del servicio de Cloud Run
 SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region=$REGION --format="value(status.url)")

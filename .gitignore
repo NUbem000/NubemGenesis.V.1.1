@@ -104,3 +104,4 @@
 ## S/MIME message
 *.smime
 *.vsix
+service-account-key.json

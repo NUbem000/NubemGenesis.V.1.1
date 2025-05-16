@@ -1,0 +1,45 @@
+FROM node:20-alpine
+
+# Instalar dependencias necesarias
+RUN apk add --update --no-cache libc6-compat python3 make g++ build-base curl
+
+# Actualización de certificados y configuración TLS
+RUN apk update && apk add ca-certificates && update-ca-certificates
+
+# Configurar entorno
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Configurar directorios para workspaces
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+COPY packages/components/package.json ./packages/components/
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+
+# Crear directorio para el paquete personalizado
+RUN mkdir -p packages/server/custompackages/nubemgenesis-nim-container-manager/
+
+# Copiar paquete personalizado
+COPY packages/server/custompackages/nubemgenesis-nim-container-manager/ ./packages/server/custompackages/nubemgenesis-nim-container-manager/
+
+# Instalar dependencias
+RUN pnpm install --no-frozen-lockfile
+
+# Copiar código fuente
+COPY . .
+
+# Construir la aplicación
+RUN pnpm build
+
+# Exponer puerto
+EXPOSE 3000
+
+# Iniciar la aplicación
+CMD ["pnpm", "start"]

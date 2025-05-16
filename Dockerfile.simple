@@ -1,17 +1,27 @@
 FROM node:20-alpine
 
 # Instalar dependencias necesarias
-RUN apk add --update --no-cache libc6-compat python3 make g++
+RUN apk add --update --no-cache libc6-compat python3 make g++ cairo-dev pango-dev build-base curl
 
+# Configurar entorno
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copiar package.json y pnpm-lock.yaml
-COPY package.json ./
-RUN npm install
+# Instalar pnpm
+RUN npm install -g pnpm
 
-# Copiar el resto de los archivos
+# Copiar todo el código
 COPY . .
 
+# Quitar el pnpm-lock y reinstalar desde cero
+RUN rm -f pnpm-lock.yaml && \
+    pnpm install --no-frozen-lockfile && \
+    pnpm add @tiptap/core --filter nubemgenesis-ui && \
+    pnpm build
+
+# Exponer puerto (Cloud Run configurará la variable PORT automáticamente)
 EXPOSE 3000
 
-CMD ["npm", "start"]
+# Comando para iniciar la aplicación
+CMD ["pnpm", "start"]
+EOF < /dev/null
