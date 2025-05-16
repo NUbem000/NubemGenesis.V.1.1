@@ -1,0 +1,26 @@
+FROM flowiseai/flowise:latest
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar todo el código del proyecto
+WORKDIR /app
+COPY . .
+
+# Instalar dependencias específicas para NubemGenesis
+RUN pnpm add @tiptap/core --filter nubemgenesis-ui || true
+RUN pnpm install --no-frozen-lockfile || true
+
+# Configurar variables de entorno
+ENV NODE_ENV=production
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Construir la aplicación
+RUN pnpm build || true
+
+# Puerto de exposición
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["pnpm", "start"]

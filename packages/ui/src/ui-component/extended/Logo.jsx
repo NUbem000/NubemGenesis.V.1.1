@@ -1,5 +1,5 @@
-import logo from '@/assets/images/flowise_white.svg'
-import logoDark from '@/assets/images/flowise_dark.svg'
+import logo from '@/assets/images/nubemgenesis_white.svg'
+import logoDark from '@/assets/images/nubemgenesis_dark.svg'
 
 import { useSelector } from 'react-redux'
 
@@ -11,9 +11,9 @@ const Logo = () => {
     return (
         <div style={{ alignItems: 'center', display: 'flex', flexDirection: 'row', marginLeft: '10px' }}>
             <img
-                style={{ objectFit: 'contain', height: 'auto', width: 150 }}
+                style={{ objectFit: 'contain', height: 'auto', width: 180 }}
                 src={customization.isDarkMode ? logoDark : logo}
-                alt='Flowise'
+                alt='NubemGenesis'
             />
         </div>
     )

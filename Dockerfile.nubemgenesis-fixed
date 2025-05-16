@@ -1,0 +1,37 @@
+FROM node:20-alpine
+
+# Instalar dependencias necesarias
+RUN apk add --update --no-cache libc6-compat python3 make g++ cairo-dev pango-dev build-base curl
+
+# Configurar entorno
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+COPY packages/components/package.json ./packages/components/
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+
+# Copiar el paquete local que falta
+COPY packages/server/custompackages ./packages/server/custompackages
+
+# Instalar todas las dependencias incluyendo las faltantes
+RUN pnpm install --no-frozen-lockfile && \
+    pnpm add @uiw/react-codemirror @tiptap/core --filter nubemgenesis-ui
+
+# Copiar el código fuente
+COPY . .
+
+# Construir la aplicación
+RUN pnpm build
+
+# Exponer el puerto
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["pnpm", "start"]
