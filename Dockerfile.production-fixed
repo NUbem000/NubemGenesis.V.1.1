@@ -1,0 +1,70 @@
+# Build stage
+FROM node:20-alpine AS builder
+
+# Instalar dependencias necesarias para compilación
+RUN apk add --no-cache python3 make g++ git
+
+WORKDIR /app
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+
+# Copiar el directorio custompackages antes de instalar
+COPY packages/server/custompackages ./packages/server/custompackages
+
+# Instalar dependencias
+RUN pnpm install
+
+# Copiar el resto del código fuente
+COPY . .
+
+# Construir la aplicación
+RUN pnpm build
+
+# Production stage
+FROM node:20-alpine
+
+# Instalar solo las dependencias de runtime necesarias
+RUN apk add --no-cache tini
+
+WORKDIR /app
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar archivos necesarios del builder
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/turbo.json ./
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/node_modules ./node_modules
+
+# Configurar usuario no root
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+ENV APP_NAME=NubemGenesis
+ENV BRAND_NAME=NubemGenesis
+ENV DEFAULT_THEME=dark
+
+# Exponer puerto
+EXPOSE 3000
+
+# Usar tini para manejar señales correctamente
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Comando de inicio
+CMD ["pnpm", "start"]

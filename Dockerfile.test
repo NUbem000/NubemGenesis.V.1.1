@@ -1,0 +1,10 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Create a simple Node.js server
+COPY test-server.js /app/test-server.js
+
+EXPOSE 8080
+
+CMD ["node", "test-server.js"]

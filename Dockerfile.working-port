@@ -1,0 +1,11 @@
+FROM flowiseai/flowise:latest
+
+# Copy a custom start script
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
+
+ENV NODE_ENV=production
+EXPOSE 8080
+
+# Use our custom start script
+CMD ["/app/start.sh"]

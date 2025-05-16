@@ -1,0 +1,46 @@
+# Usar imagen base con pnpm preinstalado
+FROM node:20-alpine
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache python3 make g++ git
+
+WORKDIR /app
+
+# Instalar pnpm globalmente (versión 9+)
+RUN npm install -g pnpm@9.0.0
+
+# Copiar archivos de configuración primero
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Crear estructura de directorios
+RUN mkdir -p packages/server packages/ui packages/components packages/api-documentation
+
+# Copiar package.json de cada workspace
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+
+# Copiar custom packages
+COPY packages/server/custompackages ./packages/server/custompackages
+
+# Instalar todas las dependencias
+RUN pnpm install --no-frozen-lockfile
+
+# Copiar código fuente
+COPY . .
+
+# Asegurarse de que las dependencias están disponibles
+RUN cd packages/ui && npm link @uiw/react-codemirror || true
+
+# Construir la aplicación
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=3000
+
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["pnpm", "start"]

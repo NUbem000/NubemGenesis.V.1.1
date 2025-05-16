@@ -1,0 +1,7 @@
+FROM flowiseai/flowise:latest
+
+ENV NODE_ENV=production
+EXPOSE 8080
+
+# Use the default Flowise start command
+CMD ["npm", "start"]

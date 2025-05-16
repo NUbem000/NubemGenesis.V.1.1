@@ -1,0 +1,13 @@
+FROM flowiseai/flowise:latest
+
+# Copy custom branding files
+COPY packages/ui/dist /app/packages/ui/dist
+
+# Set NODE_ENV to production
+ENV NODE_ENV=production
+
+# Expose port 8080 for Cloud Run
+EXPOSE 8080
+
+# Run the server directly - it will use PORT env var (8080 on Cloud Run)
+CMD ["node", "/app/packages/server/dist/index.js"]

@@ -1,0 +1,29 @@
+# Usar la imagen de Flowise como base
+FROM flowiseai/flowise:latest
+
+# Copiar solo los archivos personalizados de UI
+COPY packages/ui/src/assets/images/nubemgenesis_*.svg /app/packages/ui/dist/assets/
+COPY packages/ui/src/ui-component/extended/Logo.jsx /app/packages/ui/src/ui-component/extended/
+COPY packages/ui/src/store/reducers/customizationReducer.js /app/packages/ui/src/store/reducers/
+COPY packages/ui/src/ui-component/dialog/AboutDialog.jsx /app/packages/ui/src/ui-component/dialog/
+COPY packages/ui/src/store/constant.js /app/packages/ui/src/store/
+COPY packages/ui/src/config.js /app/packages/ui/src/
+COPY packages/ui/index.html /app/packages/ui/
+COPY packages/ui/public/manifest.json /app/packages/ui/dist/
+COPY packages/ui/public/nubemgenesis*.svg /app/packages/ui/dist/
+
+# Copiar plantillas de email
+COPY packages/server/src/templates /app/packages/server/dist/templates
+
+# Variables de entorno de branding
+ENV NODE_ENV=production
+ENV APP_NAME=NubemGenesis
+ENV BRAND_NAME=NubemGenesis
+ENV DEFAULT_THEME=dark
+ENV SITE_TITLE="NubemGenesis - Plataforma de IA Generativa"
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["flowise", "start"]

@@ -1,0 +1,32 @@
+FROM node:20-alpine
+
+# Install build tools
+RUN apk add --no-cache python3 make g++ git
+
+WORKDIR /app
+
+# Use the pre-built production image as base
+FROM flowiseai/flowise:latest AS prebuilt
+
+# Copy from prebuilt image
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy all files from prebuilt image
+COPY --from=prebuilt /app/packages ./packages
+COPY --from=prebuilt /app/node_modules ./node_modules
+COPY --from=prebuilt /app/package.json ./package.json
+COPY --from=prebuilt /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+# Copy our custom UI build
+COPY packages/ui/dist packages/ui/dist
+
+# Set environment
+ENV NODE_ENV=production
+
+# Cloud Run will set PORT=8080
+EXPOSE 8080
+
+# Start using the prebuilt server
+CMD ["node", "packages/server/dist/index.js"]

@@ -1,0 +1,12 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'debug-image'
+      - '-f'
+      - 'Dockerfile.debug'
+      - '.'
+    timeout: '600s'
+
+timeout: '900s'

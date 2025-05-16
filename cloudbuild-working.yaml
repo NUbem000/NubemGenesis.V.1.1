@@ -1,0 +1,50 @@
+steps:
+  # Construir imagen funcional
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:working'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:latest'
+      - '-f'
+      - 'Dockerfile.npm-simple'
+      - '.'
+    timeout: '1200s'
+
+  # Publicar imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app']
+
+  # Desplegar
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nubemgenesis'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:working'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--service-account'
+      - 'nubemgenesis-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--add-cloudsql-instances'
+      - '${PROJECT_ID}:us-central1:nubemgenesis-db'
+      - '--set-secrets'
+      - 'DATABASE_HOST=DATABASE_HOST:latest,DATABASE_PORT=DATABASE_PORT:latest,DATABASE_NAME=DATABASE_NAME:latest,DATABASE_USER=DATABASE_USER:latest,DATABASE_PASSWORD=DATABASE_PASSWORD:latest'
+      - '--min-instances'
+      - '1'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '1'
+      - '--port'
+      - '3000'
+
+timeout: '1800s'
+options:
+  machineType: 'N1_HIGHCPU_8'

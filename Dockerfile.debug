@@ -1,0 +1,38 @@
+FROM node:20-alpine
+
+# Instalar herramientas necesarias
+RUN apk add --no-cache python3 make g++ git alpine-sdk curl
+
+WORKDIR /app
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY packages/*/package.json ./packages/*/
+COPY packages/server/custompackages ./packages/server/custompackages
+
+# Instalar dependencias
+RUN pnpm install --no-frozen-lockfile
+
+# Verificar lo que se instaló
+RUN find node_modules -name "*codemirror*" -type d
+RUN find packages -name "*codemirror*" -type d
+
+# Instalar específicamente las dependencias problemáticas
+RUN cd packages/ui && pnpm add @uiw/react-codemirror @uiw/codemirror-theme-sublime @uiw/codemirror-theme-vscode
+
+# Verificar nuevamente
+RUN find node_modules -name "*codemirror*" -type d
+
+# Copiar código fuente
+COPY . .
+
+# Intentar construir
+RUN pnpm build || true
+
+# Si falla, mostrar más información
+RUN cd packages/ui && pnpm list | grep codemirror || true
+
+CMD ["echo", "Debug completado"]
