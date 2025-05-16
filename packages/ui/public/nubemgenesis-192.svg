@@ -1,0 +1,15 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo circular oscuro -->
+  <circle cx="96" cy="96" r="96" fill="#0a0a0a"/>
+  
+  <!-- Nube simplificada -->
+  <g>
+    <circle cx="60" cy="96" r="30" fill="#ffffff"/>
+    <circle cx="96" cy="96" r="38" fill="#ffffff"/>
+    <circle cx="132" cy="96" r="30" fill="#ffffff"/>
+    <rect x="60" y="96" width="72" height="30" fill="#ffffff"/>
+  </g>
+  
+  <!-- Estrella central (génesis) -->
+  <path d="M96 52 L105 75 L128 75 L109 90 L118 113 L96 98 L74 113 L83 90 L64 75 L87 75 Z" fill="#4CAF50"/>
+</svg>

@@ -1,0 +1,43 @@
+FROM node:20-slim
+
+# Instalar dependencias del sistema necesarias
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Instalar pnpm
+RUN npm install -g pnpm
+
+# Copiar archivos de configuración
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+
+# Instalar dependencias
+RUN pnpm install
+
+# Copiar el código fuente completo
+COPY . .
+
+# Construir la aplicación
+RUN pnpm build
+
+# Configurar variables de entorno
+ENV NODE_ENV=production
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["pnpm", "start"]

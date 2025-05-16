@@ -1,14 +1,24 @@
 import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { Dialog, DialogContent, DialogTitle, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material'
+import { 
+    Dialog, 
+    DialogContent, 
+    DialogTitle, 
+    Box, 
+    Typography, 
+    Link,
+    Divider,
+    Chip
+} from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import axios from 'axios'
 import { baseURL } from '@/store/constant'
 
 const AboutDialog = ({ show, onCancel }) => {
     const portalElement = document.getElementById('portal')
-
+    const theme = useTheme()
     const [data, setData] = useState({})
 
     useEffect(() => {
@@ -27,23 +37,32 @@ const AboutDialog = ({ show, onCancel }) => {
                     'x-request-from': 'internal'
                 }
             }
-            const latestReleaseReq = axios.get('https://api.github.com/repos/FlowiseAI/Flowise/releases/latest')
+            
             const currentVersionReq = axios.get(`${baseURL}/api/v1/version`, { ...config })
 
-            Promise.all([latestReleaseReq, currentVersionReq])
-                .then(([latestReleaseData, currentVersionData]) => {
-                    const finalData = {
-                        ...latestReleaseData.data,
-                        currentVersion: currentVersionData.data.version
-                    }
-                    setData(finalData)
+            currentVersionReq
+                .then((currentVersionData) => {
+                    setData({
+                        currentVersion: currentVersionData.data.version,
+                        name: 'NubemGenesis',
+                        description: 'Plataforma avanzada de IA generativa',
+                        company: 'NubemSystems',
+                        website: 'https://nubemsystems.es',
+                        repo: 'https://github.com/NUbem000/NubemGenesis.V.1.1'
+                    })
                 })
                 .catch((error) => {
                     console.error('Error fetching data:', error)
+                    setData({
+                        currentVersion: '1.0.0',
+                        name: 'NubemGenesis',
+                        description: 'Plataforma avanzada de IA generativa',
+                        company: 'NubemSystems',
+                        website: 'https://nubemsystems.es',
+                        repo: 'https://github.com/NUbem000/NubemGenesis.V.1.1'
+                    })
                 })
         }
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [show])
 
     const component = show ? (
@@ -55,36 +74,52 @@ const AboutDialog = ({ show, onCancel }) => {
             aria-labelledby='alert-dialog-title'
             aria-describedby='alert-dialog-description'
         >
-            <DialogTitle sx={{ fontSize: '1rem' }} id='alert-dialog-title'>
-                Flowise Version
+            <DialogTitle sx={{ 
+                fontSize: '1.5rem', 
+                color: theme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2
+            }} id='alert-dialog-title'>
+                <Box component="span">Acerca de {data.name}</Box>
+                <Chip 
+                    label={`v${data.currentVersion}`} 
+                    size="small" 
+                    color="primary"
+                />
             </DialogTitle>
             <DialogContent>
-                {data && (
-                    <TableContainer component={Paper}>
-                        <Table aria-label='simple table'>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Current Version</TableCell>
-                                    <TableCell>Latest Version</TableCell>
-                                    <TableCell>Published At</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell component='th' scope='row'>
-                                        {data.currentVersion}
-                                    </TableCell>
-                                    <TableCell component='th' scope='row'>
-                                        <a target='_blank' rel='noreferrer' href={data.html_url}>
-                                            {data.name}
-                                        </a>
-                                    </TableCell>
-                                    <TableCell>{moment(data.published_at).fromNow()}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                )}
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        {data.description}
+                    </Typography>
+                    
+                    <Divider sx={{ my: 2 }} />
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant="body2">
+                            <strong>Desarrollado por:</strong> {data.company}
+                        </Typography>
+                        <Typography variant="body2">
+                            <strong>Sitio web:</strong>{' '}
+                            <Link href={data.website} target="_blank" rel="noopener noreferrer">
+                                {data.website}
+                            </Link>
+                        </Typography>
+                        <Typography variant="body2">
+                            <strong>Repositorio:</strong>{' '}
+                            <Link href={data.repo} target="_blank" rel="noopener noreferrer">
+                                GitHub
+                            </Link>
+                        </Typography>
+                    </Box>
+                    
+                    <Divider sx={{ my: 2 }} />
+                    
+                    <Typography variant="body2" color="text.secondary">
+                        &copy; {new Date().getFullYear()} {data.company}. Todos los derechos reservados.
+                    </Typography>
+                </Box>
             </DialogContent>
         </Dialog>
     ) : null

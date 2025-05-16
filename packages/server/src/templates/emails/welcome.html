@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a NubemGenesis</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .content {
+            padding: 40px 20px;
+            color: #333333;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .features {
+            background-color: #f9f9f9;
+            padding: 30px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .footer {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Bienvenido a NubemGenesis!</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hola {{userName}},</h2>
+            <p>¡Gracias por unirte a NubemGenesis! Estamos emocionados de tenerte con nosotros.</p>
+            
+            <p>Tu cuenta ha sido creada exitosamente y ya puedes comenzar a explorar nuestra plataforma de IA generativa.</p>
+            
+            <div class="features">
+                <h3>🚀 Comienza con estas características:</h3>
+                <ul>
+                    <li><strong>Constructor Visual:</strong> Crea flujos de IA arrastrando y soltando</li>
+                    <li><strong>Agentes Inteligentes:</strong> Desarrolla agentes autónomos</li>
+                    <li><strong>Multi-LLM:</strong> Integra con OpenAI, Anthropic y más</li>
+                    <li><strong>API REST:</strong> Conecta con tus aplicaciones</li>
+                </ul>
+            </div>
+            
+            <center>
+                <a href="{{loginUrl}}" class="button">Iniciar Sesión</a>
+            </center>
+            
+            <h3>Recursos útiles:</h3>
+            <ul>
+                <li><a href="{{docsUrl}}">Documentación</a></li>
+                <li><a href="{{tutorialsUrl}}">Tutoriales</a></li>
+                <li><a href="{{supportUrl}}">Soporte</a></li>
+            </ul>
+            
+            <p>Si tienes alguna pregunta, no dudes en contactarnos.</p>
+            
+            <p>¡Feliz construcción de IA!</p>
+            <p><strong>El equipo de NubemGenesis</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2024 NubemGenesis | Powered by NubemSystems</p>
+            <p>
+                <a href="{{privacyUrl}}">Privacidad</a> | 
+                <a href="{{termsUrl}}">Términos</a> | 
+                <a href="{{unsubscribeUrl}}">Cancelar suscripción</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

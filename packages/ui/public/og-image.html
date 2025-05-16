@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            font-family: 'Comforta', 'Arial', sans-serif;
+            color: white;
+            width: 1200px;
+            height: 630px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .logo {
+            width: 200px;
+            height: 200px;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #4CAF50 0%, #2196F3 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tagline {
+            font-size: 32px;
+            color: #b0b0b0;
+            text-align: center;
+            max-width: 800px;
+        }
+        .cloud-bg {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 200px;
+            background: url('data:image/svg+xml,...') no-repeat center bottom;
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body>
+    <svg class="logo" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="70" cy="100" r="40" fill="#4CAF50"/>
+        <circle cx="100" cy="100" r="50" fill="#4CAF50"/>
+        <circle cx="130" cy="100" r="40" fill="#4CAF50"/>
+        <rect x="70" y="100" width="60" height="40" fill="#4CAF50"/>
+        <path d="M100 60 L110 85 L135 85 L115 105 L125 130 L100 110 L75 130 L85 105 L65 85 L90 85 Z" fill="#2196F3"/>
+    </svg>
+    <h1 class="title">NubemGenesis</h1>
+    <p class="tagline">Plataforma Avanzada de IA Generativa<br>Crea agentes inteligentes visualmente</p>
+    <div class="cloud-bg"></div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+FROM flowiseai/flowise:latest
+
+# Copiar los cambios de UI actualizados
+COPY packages/ui/src/assets/images/nubemgenesis_white.svg /app/packages/ui/src/assets/images/
+COPY packages/ui/src/assets/images/nubemgenesis_dark.svg /app/packages/ui/src/assets/images/
+COPY packages/ui/src/ui-component/extended/Logo.jsx /app/packages/ui/src/ui-component/extended/
+COPY packages/ui/src/store/reducers/customizationReducer.js /app/packages/ui/src/store/reducers/
+COPY packages/ui/index.html /app/packages/ui/
+COPY packages/ui/public/nubemgenesis-favicon.svg /app/packages/ui/public/
+COPY packages/ui/src/config.js /app/packages/ui/src/
+
+# Configurar variables de entorno
+ENV NODE_ENV=production
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Puerto
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["yarn", "start:prod"]

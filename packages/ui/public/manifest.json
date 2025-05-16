@@ -1,0 +1,29 @@
+{
+  "short_name": "NubemGenesis",
+  "name": "NubemGenesis - Plataforma de IA Generativa",
+  "description": "Plataforma avanzada de desarrollo de IA generativa para crear agentes inteligentes y flujos de trabajo automatizados",
+  "icons": [
+    {
+      "src": "nubemgenesis-favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "nubemgenesis-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "nubemgenesis-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#4CAF50",
+  "background_color": "#0a0a0a",
+  "categories": ["productivity", "utilities"],
+  "lang": "es-ES",
+  "orientation": "portrait-primary"
+}

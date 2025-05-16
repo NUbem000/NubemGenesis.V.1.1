@@ -1,0 +1,24 @@
+steps:
+  # Construir la imagen con los cambios de frontend
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:frontend-update', '-f', 'Dockerfile.frontend-update', '.']
+
+  # Publicar la imagen
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:frontend-update']
+
+  # Desplegar en Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nubemgenesis'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:frontend-update'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+
+timeout: '600s'
