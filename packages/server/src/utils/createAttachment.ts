@@ -9,7 +9,7 @@ import {
     removeSpecificFileFromUpload,
     isValidUUID,
     isPathTraversal
-} from 'flowise-components'
+} from 'nubemgenesis-components'
 import { getRunningExpressApp } from './getRunningExpressApp'
 import { getErrorMessage } from '../errors/utils'
 import { InternalFlowiseError } from '../errors/internalFlowiseError'

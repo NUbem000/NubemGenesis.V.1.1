@@ -1,6 +1,6 @@
 import { ChatFlow } from '../database/entities/ChatFlow'
 import { IReactFlowObject } from '../Interface'
-import { addBase64FilesToStorage } from 'flowise-components'
+import { addBase64FilesToStorage } from 'nubemgenesis-components'
 
 export const containsBase64File = (chatflow: ChatFlow) => {
     const parsedFlowData: IReactFlowObject = JSON.parse(chatflow.flowData)

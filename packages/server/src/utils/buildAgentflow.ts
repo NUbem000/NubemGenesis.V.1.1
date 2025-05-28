@@ -12,7 +12,7 @@ import {
     IServerSideEventStreamer,
     convertChatHistoryToText,
     generateFollowUpPrompts
-} from 'flowise-components'
+} from 'nubemgenesis-components'
 import {
     IncomingAgentflowInput,
     INodeData,

@@ -16,7 +16,7 @@ import {
     getFileFromUpload,
     removeSpecificFileFromUpload,
     handleEscapeCharacters
-} from 'flowise-components'
+} from 'nubemgenesis-components'
 import { StatusCodes } from 'http-status-codes'
 import {
     IncomingInput,

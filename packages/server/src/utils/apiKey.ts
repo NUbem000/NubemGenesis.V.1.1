@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto'
-import { ICommonObject } from 'flowise-components'
+import { ICommonObject } from 'nubemgenesis-components'
 import moment from 'moment'
 import fs from 'fs'
 import path from 'path'

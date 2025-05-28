@@ -4,7 +4,7 @@ import openaiAssistantsService from '../../services/openai-assistants'
 import contentDisposition from 'content-disposition'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 import { StatusCodes } from 'http-status-codes'
-import { streamStorageFile } from 'flowise-components'
+import { streamStorageFile } from 'nubemgenesis-components'
 
 // List available assistants
 const getAllOpenaiAssistants = async (req: Request, res: Response, next: NextFunction) => {

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import fs from 'fs'
 import contentDisposition from 'content-disposition'
-import { streamStorageFile } from 'flowise-components'
+import { streamStorageFile } from 'nubemgenesis-components'
 import { StatusCodes } from 'http-status-codes'
 import { InternalFlowiseError } from '../../errors/internalFlowiseError'
 

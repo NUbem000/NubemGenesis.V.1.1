@@ -1,4 +1,4 @@
-import { ICommonObject, removeFolderFromStorage } from 'flowise-components'
+import { ICommonObject, removeFolderFromStorage } from 'nubemgenesis-components'
 import { StatusCodes } from 'http-status-codes'
 import { QueryRunner } from 'typeorm'
 import { ChatflowType, IReactFlowObject } from '../../Interface'

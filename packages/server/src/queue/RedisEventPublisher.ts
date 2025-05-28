@@ -1,4 +1,4 @@
-import { IServerSideEventStreamer } from 'flowise-components'
+import { IServerSideEventStreamer } from 'nubemgenesis-components'
 import { createClient } from 'redis'
 
 export class RedisEventPublisher implements IServerSideEventStreamer {

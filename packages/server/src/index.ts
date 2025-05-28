@@ -29,6 +29,19 @@ import { RedisEventSubscriber } from './queue/RedisEventSubscriber'
 import { WHITELIST_URLS } from './utils/constants'
 import 'global-agent/bootstrap'
 
+// NEW SECURITY IMPORTS
+import { validateEnv } from './config/envValidation'
+import { setupSecurityMiddleware } from './middlewares/securityHeaders'
+import { globalRateLimiter, ipBlockingMiddleware, authRateLimiter } from './middlewares/rateLimiter'
+
+// Validate environment variables on startup
+try {
+    validateEnv()
+} catch (error) {
+    logger.error('Environment validation failed:', error)
+    process.exit(1)
+}
+
 declare global {
     namespace Express {
         namespace Multer {
@@ -78,80 +91,85 @@ export class App {
             this.nodesPool = new NodesPool()
             await this.nodesPool.initialize()
 
-            // Initialize abort controllers pool
-            this.abortControllerPool = new AbortControllerPool()
-
-            // Initialize API keys
-            await getAPIKeys()
-
-            // Initialize encryption key
-            await getEncryptionKey()
-
-            // Initialize Rate Limit
-            this.rateLimiterManager = RateLimiterManager.getInstance()
-            await this.rateLimiterManager.initializeRateLimiters(await getDataSource().getRepository(ChatFlow).find())
+            // Initialize metrics provider
+            this.metricsProvider = process.env.METRICS_PROVIDER === 'prometheus' ? new Prometheus() : new OpenTelemetry()
 
             // Initialize cache pool
             this.cachePool = new CachePool()
 
-            // Initialize telemetry
-            this.telemetry = new Telemetry()
+            // Initialize abort controller pool
+            this.abortControllerPool = new AbortControllerPool()
 
-            // Initialize SSE Streamer
+            // Initialize sse streamer
             this.sseStreamer = new SSEStreamer()
 
-            // Init Queues
-            if (process.env.MODE === MODE.QUEUE) {
-                this.queueManager = QueueManager.getInstance()
-                this.queueManager.setupAllQueues({
-                    componentNodes: this.nodesPool.componentNodes,
-                    telemetry: this.telemetry,
-                    cachePool: this.cachePool,
-                    appDataSource: this.AppDataSource,
-                    abortControllerPool: this.abortControllerPool
-                })
-                this.redisSubscriber = new RedisEventSubscriber(this.sseStreamer)
-                await this.redisSubscriber.connect()
-            }
+            // Initialize rate limiter manager
+            this.rateLimiterManager = new RateLimiterManager()
 
+            // Initialize queue manager
+            this.queueManager = new QueueManager(this.AppDataSource)
+            await this.queueManager.initialize()
+
+            // Initialize redis event subscriber
+            this.redisSubscriber = new RedisEventSubscriber(this.queueManager.getQueues())
+
+            // Initialize encryption key
+            await getEncryptionKey()
+
+            // Initialize telemetry
+            this.telemetry = new Telemetry()
             logger.info('📦 [server]: Data Source has been initialized!')
         } catch (error) {
             logger.error('❌ [server]: Error during Data Source initialization:', error)
+            throw error
         }
     }
 
     async config() {
-        // Limit is needed to allow sending/receiving base64 encoded string
+        // === SECURITY FIRST: Apply security middlewares before anything else ===
+        
+        // 1. IP blocking middleware (must be first)
+        this.app.use(ipBlockingMiddleware)
+        
+        // 2. Global rate limiter
+        this.app.use(globalRateLimiter)
+        
+        // 3. Security headers (Helmet)
+        setupSecurityMiddleware(this.app)
+        
+        // 4. Trust proxy settings
+        if (process.env.NUMBER_OF_PROXIES && parseInt(process.env.NUMBER_OF_PROXIES) > 0) {
+            this.app.set('trust proxy', parseInt(process.env.NUMBER_OF_PROXIES))
+        }
+
+        // === BODY PARSING & LIMITS ===
         const flowise_file_size_limit = process.env.FLOWISE_FILE_SIZE_LIMIT || '50mb'
         this.app.use(express.json({ limit: flowise_file_size_limit }))
         this.app.use(express.urlencoded({ limit: flowise_file_size_limit, extended: true }))
-        if (process.env.NUMBER_OF_PROXIES && parseInt(process.env.NUMBER_OF_PROXIES) > 0)
-            this.app.set('trust proxy', parseInt(process.env.NUMBER_OF_PROXIES))
 
-        // Allow access from specified domains
+        // === CORS Configuration ===
         this.app.use(cors(getCorsOptions()))
 
-        // Allow embedding from specified domains.
+        // === CSP for iframes (if not already set by Helmet) ===
         this.app.use((req, res, next) => {
             const allowedOrigins = getAllowedIframeOrigins()
-            if (allowedOrigins == '*') {
-                next()
-            } else {
-                const csp = `frame-ancestors ${allowedOrigins}`
-                res.setHeader('Content-Security-Policy', csp)
-                next()
+            if (allowedOrigins !== '*') {
+                const existingCSP = res.getHeader('Content-Security-Policy')
+                if (!existingCSP || !existingCSP.toString().includes('frame-ancestors')) {
+                    const csp = `frame-ancestors ${allowedOrigins}`
+                    res.setHeader('Content-Security-Policy', csp)
+                }
             }
+            next()
         })
 
-        // Switch off the default 'X-Powered-By: Express' header
-        this.app.disable('x-powered-by')
-
-        // Add the expressRequestLogger middleware to log all requests
+        // === LOGGING ===
         this.app.use(expressRequestLogger)
 
-        // Add the sanitizeMiddleware to guard against XSS
+        // === XSS Protection ===
         this.app.use(sanitizeMiddleware)
 
+        // === AUTHENTICATION ===
         const whitelistURLs = WHITELIST_URLS
         const URL_CASE_INSENSITIVE_REGEX: RegExp = /\/api\/v1\//i
         const URL_CASE_SENSITIVE_REGEX: RegExp = /\/api\/v1\//
@@ -162,7 +180,15 @@ export class App {
             const basicAuthMiddleware = basicAuth({
                 users: { [username]: password }
             })
+            
             this.app.use(async (req, res, next) => {
+                // Apply auth rate limiter for login attempts
+                if (req.path === '/api/v1/auth/login') {
+                    return authRateLimiter(req, res, () => {
+                        basicAuthMiddleware(req, res, next)
+                    })
+                }
+
                 // Step 1: Check if the req path contains /api/v1 regardless of case
                 if (URL_CASE_INSENSITIVE_REGEX.test(req.path)) {
                     // Step 2: Check if the req path is case sensitive
@@ -217,94 +243,96 @@ export class App {
             })
         }
 
-        if (process.env.ENABLE_METRICS === 'true') {
-            switch (process.env.METRICS_PROVIDER) {
-                // default to prometheus
-                case 'prometheus':
-                case undefined:
-                    this.metricsProvider = new Prometheus(this.app)
-                    break
-                case 'open_telemetry':
-                    this.metricsProvider = new OpenTelemetry(this.app)
-                    break
-                // add more cases for other metrics providers here
-            }
-            if (this.metricsProvider) {
-                await this.metricsProvider.initializeCounters()
-                logger.info(`📊 [server]: Metrics Provider [${this.metricsProvider.getName()}] has been initialized!`)
-            } else {
-                logger.error(
-                    "❌ [server]: Metrics collection is enabled, but failed to initialize provider (valid values are 'prometheus' or 'open_telemetry'."
-                )
-            }
-        }
-
+        // === API ROUTES ===
         this.app.use('/api/v1', flowiseApiV1Router)
 
-        // ----------------------------------------
-        // Configure number of proxies in Host Environment
-        // ----------------------------------------
-        this.app.get('/api/v1/ip', (request, response) => {
-            response.send({
-                ip: request.ip,
-                msg: 'Check returned IP address in the response. If it matches your current IP address ( which you can get by going to http://ip.nfriedly.com/ or https://api.ipify.org/ ), then the number of proxies is correct and the rate limiter should now work correctly. If not, increase the number of proxies by 1 and restart Cloud-Hosted Flowise until the IP address matches your own. Visit https://docs.flowiseai.com/configuration/rate-limit#cloud-hosted-rate-limit-setup-guide for more information.'
-            })
-        })
-
-        if (process.env.MODE === MODE.QUEUE && process.env.ENABLE_BULLMQ_DASHBOARD === 'true') {
-            this.app.use('/admin/queues', this.queueManager.getBullBoardRouter())
-        }
-
-        // ----------------------------------------
-        // Serve UI static
-        // ----------------------------------------
-
+        // === STATIC FILES ===
         const packagePath = getNodeModulesPackagePath('flowise-ui')
-        const uiBuildPath = path.join(packagePath, 'build')
-        const uiHtmlPath = path.join(packagePath, 'build', 'index.html')
+        const uiPath = path.join(packagePath, 'dist')
+        this.app.use('/', express.static(uiPath))
 
-        this.app.use('/', express.static(uiBuildPath))
-
-        // All other requests not handled will return React app
+        // All other non-api routes should return the UI
         this.app.use((req: Request, res: Response) => {
-            res.sendFile(uiHtmlPath)
+            // Any other routes not found
+            res.sendFile(path.join(uiPath, 'index.html'))
         })
 
-        // Error handling
+        // === ERROR HANDLING (must be last) ===
         this.app.use(errorHandlerMiddleware)
+
+        // Log security configuration
+        logger.info('🔒 [server]: Security middlewares configured:')
+        logger.info('  ✓ Environment validation')
+        logger.info('  ✓ IP blocking')
+        logger.info('  ✓ Rate limiting')
+        logger.info('  ✓ Security headers (Helmet)')
+        logger.info('  ✓ CORS protection')
+        logger.info('  ✓ XSS sanitization')
     }
 
-    async stopApp() {
-        try {
-            const removePromises: any[] = []
-            removePromises.push(this.telemetry.flush())
-            if (this.queueManager) {
-                removePromises.push(this.redisSubscriber.disconnect())
+    async loadChatFlow() {
+        const allChatFlows: ChatFlow[] = await this.AppDataSource.getRepository(ChatFlow).find()
+
+        for (const chatFlow of allChatFlows) {
+            const flowObj = JSON.parse(chatFlow.flowData)
+            const reactFlowNodes = flowObj.nodes
+            const reactFlowEdges = flowObj.edges
+            if (MODE === 'QUEUE') {
+                await this.queueManager.addJob(`loadChatflow-${chatFlow.id}`, { chatFlow, reactFlowNodes, reactFlowEdges })
+            } else {
+                const res = await this.telemetry.checkRegistration({ chatflowId: chatFlow.id, nodes: reactFlowNodes })
+                if (!res.registered) await this.telemetry.sendTelemetry('chatflow_created', res.data)
             }
-            await Promise.all(removePromises)
-        } catch (e) {
-            logger.error(`❌[server]: Flowise Server shut down error: ${e}`)
+        }
+    }
+
+    async build() {
+        await this.setupNodeModulesPackages()
+        await this.initDatabase()
+        await this.config()
+
+        const validateKeys = async () => {
+            // Get API keys at the start
+            await getAPIKeys()
+        }
+
+        // Initialize API keys
+        await validateKeys()
+
+        // Initialize telemetry
+        this.telemetry.sendTelemetry('server_started')
+
+        await this.loadChatFlow()
+
+        const PORT = parseInt(process.env.PORT || '', 10) || 3000
+        const server = http.createServer(this.app)
+
+        server.listen(PORT, () => {
+            logger.info(`⚡️ [server]: Server is running at http://localhost:${PORT}`)
+        })
+    }
+
+    async setupNodeModulesPackages() {
+        const packagePath = getNodeModulesPackagePath('flowise-components')
+        logger.info(`🤖 [server]: Start setting up node packages from ${packagePath}...`)
+        const spinner = {
+            start: () => {},
+            stop: () => {}
+        }
+        try {
+            spinner.start()
+            const nodeModulesPackagePaths = await this.nodesPool.getNodeModulesPackagePath(packagePath)
+            for (const nodeModulesPackagePath of nodeModulesPackagePaths) {
+                await this.nodesPool.initializeNodeModulesPackage(nodeModulesPackagePath)
+            }
+            spinner.stop()
+            logger.info('✅ [server]: Node packages setup successfully!')
+        } catch (error) {
+            spinner.stop()
+            logger.error(`❌ [server]: Error setting up node packages: ${error}`)
         }
     }
 }
 
-let serverApp: App | undefined
-
-export async function start(): Promise<void> {
-    serverApp = new App()
-
-    const host = process.env.HOST
-    const port = parseInt(process.env.PORT || '', 10) || 3000
-    const server = http.createServer(serverApp.app)
-
-    await serverApp.initDatabase()
-    await serverApp.config()
-
-    server.listen(port, host, () => {
-        logger.info(`⚡️ [server]: Flowise Server is listening at ${host ? 'http://' + host : ''}:${port}`)
-    })
-}
-
-export function getInstance(): App | undefined {
-    return serverApp
-}
+// Export the updated server
+export default App

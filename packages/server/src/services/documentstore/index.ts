@@ -13,7 +13,7 @@ import {
     removeFilesFromStorage,
     removeSpecificFileFromStorage,
     removeSpecificFileFromUpload
-} from 'flowise-components'
+} from 'nubemgenesis-components'
 import {
     addLoaderSource,
     ChatType,

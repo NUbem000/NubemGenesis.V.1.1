@@ -1,4 +1,12 @@
 import express from 'express'
+import { 
+    apiRateLimiter, 
+    chatflowRateLimiter, 
+    uploadRateLimiter,
+    authRateLimiter 
+} from '../middlewares/rateLimiter'
+
+// Import all routers
 import apikeyRouter from './apikey'
 import assistantsRouter from './assistants'
 import attachmentsRouter from './attachments'
@@ -50,53 +58,64 @@ import agentflowv2GeneratorRouter from './agentflowv2-generator'
 
 const router = express.Router()
 
+// === PUBLIC ENDPOINTS (No additional rate limiting) ===
 router.use('/ping', pingRouter)
-router.use('/apikey', apikeyRouter)
-router.use('/assistants', assistantsRouter)
-router.use('/attachments', attachmentsRouter)
-router.use('/chatflows', chatflowsRouter)
-router.use('/chatflows-streaming', chatflowsStreamingRouter)
-router.use('/chatmessage', chatMessageRouter)
-router.use('/components-credentials', componentsCredentialsRouter)
-router.use('/components-credentials-icon', componentsCredentialsIconRouter)
-router.use('/chatflows-uploads', chatflowsUploadsRouter)
-router.use('/credentials', credentialsRouter)
-router.use('/document-store', documentStoreRouter)
-router.use('/export-import', exportImportRouter)
-router.use('/feedback', feedbackRouter)
-router.use('/fetch-links', fetchLinksRouter)
-router.use('/flow-config', flowConfigRouter)
-router.use('/internal-chatmessage', internalChatmessagesRouter)
-router.use('/internal-prediction', internalPredictionRouter)
-router.use('/get-upload-file', getUploadFileRouter)
-router.use('/get-upload-path', getUploadPathRouter)
-router.use('/leads', leadsRouter)
-router.use('/load-prompt', loadPromptRouter)
-router.use('/marketplaces', marketplacesRouter)
-router.use('/node-config', nodeConfigRouter)
-router.use('/node-custom-function', nodeCustomFunctionRouter)
-router.use('/node-icon', nodeIconRouter)
-router.use('/node-load-method', nodeLoadMethodRouter)
-router.use('/nodes', nodesRouter)
-router.use('/openai-assistants', openaiAssistantsRouter)
-router.use('/openai-assistants-file', openaiAssistantsFileRouter)
-router.use('/openai-assistants-vector-store', openaiAssistantsVectorStoreRouter)
-router.use('/openai-realtime', openaiRealtimeRouter)
-router.use('/prediction', predictionRouter)
-router.use('/prompts-list', promptListsRouter)
-router.use('/public-chatbotConfig', publicChatbotRouter)
-router.use('/public-chatflows', publicChatflowsRouter)
-router.use('/public-executions', publicExecutionsRouter)
-router.use('/stats', statsRouter)
-router.use('/tools', toolsRouter)
-router.use('/variables', variablesRouter)
-router.use('/vector', vectorRouter)
 router.use('/verify', verifyRouter)
 router.use('/version', versionRouter)
-router.use('/upsert-history', upsertHistoryRouter)
-router.use('/nvidia-nim', nvidiaNimRouter)
-router.use('/executions', executionsRouter)
-router.use('/validation', validationRouter)
-router.use('/agentflowv2-generator', agentflowv2GeneratorRouter)
+
+// === AUTHENTICATION ENDPOINTS (Strict rate limiting) ===
+router.use('/apikey', authRateLimiter, apikeyRouter)
+
+// === FILE UPLOAD ENDPOINTS (Upload rate limiting) ===
+router.use('/attachments', uploadRateLimiter, attachmentsRouter)
+router.use('/chatflows-uploads', uploadRateLimiter, chatflowsUploadsRouter)
+router.use('/get-upload-file', uploadRateLimiter, getUploadFileRouter)
+router.use('/get-upload-path', uploadRateLimiter, getUploadPathRouter)
+
+// === CHATFLOW EXECUTION ENDPOINTS (Chatflow rate limiting) ===
+router.use('/prediction', chatflowRateLimiter, predictionRouter)
+router.use('/internal-prediction', chatflowRateLimiter, internalPredictionRouter)
+router.use('/chatflows-streaming', chatflowRateLimiter, chatflowsStreamingRouter)
+router.use('/public-chatflows', chatflowRateLimiter, publicChatflowsRouter)
+router.use('/public-executions', chatflowRateLimiter, publicExecutionsRouter)
+
+// === AI ASSISTANT ENDPOINTS (Chatflow rate limiting) ===
+router.use('/openai-assistants', chatflowRateLimiter, openaiAssistantsRouter)
+router.use('/openai-assistants-file', chatflowRateLimiter, openaiAssistantsFileRouter)
+router.use('/openai-assistants-vector-store', chatflowRateLimiter, openaiAssistantsVectorStoreRouter)
+router.use('/openai-realtime', chatflowRateLimiter, openaiRealtimeRouter)
+router.use('/nvidia-nim', chatflowRateLimiter, nvidiaNimRouter)
+router.use('/agentflowv2-generator', chatflowRateLimiter, agentflowv2GeneratorRouter)
+
+// === STANDARD API ENDPOINTS (API rate limiting) ===
+router.use('/assistants', apiRateLimiter, assistantsRouter)
+router.use('/chatflows', apiRateLimiter, chatflowsRouter)
+router.use('/chatmessage', apiRateLimiter, chatMessageRouter)
+router.use('/components-credentials', apiRateLimiter, componentsCredentialsRouter)
+router.use('/components-credentials-icon', apiRateLimiter, componentsCredentialsIconRouter)
+router.use('/credentials', apiRateLimiter, credentialsRouter)
+router.use('/document-store', apiRateLimiter, documentStoreRouter)
+router.use('/export-import', apiRateLimiter, exportImportRouter)
+router.use('/feedback', apiRateLimiter, feedbackRouter)
+router.use('/fetch-links', apiRateLimiter, fetchLinksRouter)
+router.use('/flow-config', apiRateLimiter, flowConfigRouter)
+router.use('/internal-chatmessage', apiRateLimiter, internalChatmessagesRouter)
+router.use('/leads', apiRateLimiter, leadsRouter)
+router.use('/load-prompt', apiRateLimiter, loadPromptRouter)
+router.use('/marketplaces', apiRateLimiter, marketplacesRouter)
+router.use('/node-config', apiRateLimiter, nodeConfigRouter)
+router.use('/node-custom-function', apiRateLimiter, nodeCustomFunctionRouter)
+router.use('/node-icon', apiRateLimiter, nodeIconRouter)
+router.use('/node-load-method', apiRateLimiter, nodeLoadMethodRouter)
+router.use('/nodes', apiRateLimiter, nodesRouter)
+router.use('/prompts-list', apiRateLimiter, promptListsRouter)
+router.use('/public-chatbotConfig', apiRateLimiter, publicChatbotRouter)
+router.use('/stats', apiRateLimiter, statsRouter)
+router.use('/tools', apiRateLimiter, toolsRouter)
+router.use('/variables', apiRateLimiter, variablesRouter)
+router.use('/vector', apiRateLimiter, vectorRouter)
+router.use('/upsert-history', apiRateLimiter, upsertHistoryRouter)
+router.use('/executions', apiRateLimiter, executionsRouter)
+router.use('/validation', apiRateLimiter, validationRouter)
 
 export default router

@@ -13,7 +13,7 @@ import {
 import { getRunningExpressApp } from '../../utils/getRunningExpressApp'
 import { ChatFlow } from '../../database/entities/ChatFlow'
 import { IDepthQueue, IReactFlowNode } from '../../Interface'
-import { ICommonObject, INodeData } from 'flowise-components'
+import { ICommonObject, INodeData } from 'nubemgenesis-components'
 import { convertToOpenAIFunction } from '@langchain/core/utils/function_calling'
 import { v4 as uuidv4 } from 'uuid'
 import { Variable } from '../../database/entities/Variable'

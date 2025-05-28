@@ -8,7 +8,7 @@ import {
     mapExtToInputField,
     getFileFromUpload,
     removeSpecificFileFromUpload
-} from 'flowise-components'
+} from 'nubemgenesis-components'
 import logger from '../utils/logger'
 import {
     buildFlow,
