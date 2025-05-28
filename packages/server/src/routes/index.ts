@@ -5,6 +5,7 @@ import {
     uploadRateLimiter,
     authRateLimiter 
 } from '../middlewares/rateLimiter'
+import { healthCheck, ping } from './health'
 
 // Import all routers
 import apikeyRouter from './apikey'
@@ -58,8 +59,11 @@ import agentflowv2GeneratorRouter from './agentflowv2-generator'
 
 const router = express.Router()
 
+// === HEALTH CHECK ENDPOINTS (No rate limiting for monitoring) ===
+router.get('/health', healthCheck)
+router.get('/ping', ping)
+
 // === PUBLIC ENDPOINTS (No additional rate limiting) ===
-router.use('/ping', pingRouter)
 router.use('/verify', verifyRouter)
 router.use('/version', versionRouter)
 
