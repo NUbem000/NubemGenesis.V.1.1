@@ -1,0 +1,84 @@
+# LiteLLM Configuration for NubemGenesis
+model_list:
+  # OpenAI Models
+  - model_name: gpt-4-turbo-preview
+    litellm_params:
+      model: openai/gpt-4-turbo-preview
+      api_key: ${OPENAI_API_KEY}
+      max_tokens: 4096
+      temperature: 0.7
+    
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/gpt-3.5-turbo
+      api_key: ${OPENAI_API_KEY}
+      max_tokens: 4096
+      
+  # Anthropic Models
+  - model_name: claude-3-opus-20240229
+    litellm_params:
+      model: anthropic/claude-3-opus-20240229
+      api_key: ${ANTHROPIC_API_KEY}
+      max_tokens: 4096
+      
+  - model_name: claude-3-sonnet-20240229
+    litellm_params:
+      model: anthropic/claude-3-sonnet-20240229
+      api_key: ${ANTHROPIC_API_KEY}
+      max_tokens: 4096
+      
+  # Google Models
+  - model_name: gemini-pro
+    litellm_params:
+      model: google/gemini-pro
+      api_key: ${GOOGLE_API_KEY}
+      max_tokens: 2048
+      
+  # Mistral Models
+  - model_name: mistral-large-latest
+    litellm_params:
+      model: mistral/mistral-large-latest
+      api_key: ${MISTRAL_API_KEY}
+      max_tokens: 4096
+      
+  # Open Source Models (via Together)
+  - model_name: mixtral-8x7b-instruct
+    litellm_params:
+      model: together/mixtral-8x7b-instruct
+      api_key: ${TOGETHER_API_KEY}
+      max_tokens: 4096
+      
+  - model_name: llama-3-70b-instruct
+    litellm_params:
+      model: together/llama-3-70b-instruct
+      api_key: ${TOGETHER_API_KEY}
+      max_tokens: 4096
+
+# Router Settings
+router_settings:
+  routing_strategy: "usage-based-routing-v2"
+  redis_host: ${REDIS_HOST}
+  redis_port: ${REDIS_PORT}
+  redis_password: ${REDIS_PASSWORD}
+  
+# General Settings
+general_settings:
+  master_key: ${LITELLM_MASTER_KEY}
+  database_url: ${DATABASE_URL}
+  otel_endpoint: ${OTEL_ENDPOINT}
+  
+# Fallback Models
+litellm_settings:
+  fallback_models:
+    - gpt-3.5-turbo
+    - mixtral-8x7b-instruct
+  context_window_fallback_enabled: true
+  retry_policy:
+    max_retries: 3
+    retry_after: 5
+  
+# Rate Limiting
+rate_limiting:
+  enabled: true
+  default_requests_per_minute: 100
+  default_tokens_per_minute: 100000

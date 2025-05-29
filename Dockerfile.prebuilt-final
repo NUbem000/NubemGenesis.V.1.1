@@ -1,0 +1,16 @@
+FROM flowiseai/flowise:latest
+
+# Create a custom start script
+RUN echo '#!/bin/sh\n\
+export PORT=${PORT:-8080}\n\
+cd /app/packages/server\n\
+node dist/index.js' > /app/start.sh && chmod +x /app/start.sh
+
+# Copy only the UI branding assets if they exist
+COPY packages/ui/dist /app/packages/ui/dist || true
+COPY packages/ui/build /app/packages/ui/build || true
+
+ENV NODE_ENV=production
+EXPOSE 8080
+
+CMD ["/app/start.sh"]

@@ -56,6 +56,7 @@ import nvidiaNimRouter from './nvidia-nim'
 import executionsRouter from './executions'
 import validationRouter from './validation'
 import agentflowv2GeneratorRouter from './agentflowv2-generator'
+import orchestratorRouter from './orchestrator'
 
 const router = express.Router()
 
@@ -90,6 +91,9 @@ router.use('/openai-assistants-vector-store', chatflowRateLimiter, openaiAssista
 router.use('/openai-realtime', chatflowRateLimiter, openaiRealtimeRouter)
 router.use('/nvidia-nim', chatflowRateLimiter, nvidiaNimRouter)
 router.use('/agentflowv2-generator', chatflowRateLimiter, agentflowv2GeneratorRouter)
+
+// === ORCHESTRATION ENDPOINTS (Specialized rate limiting) ===
+router.use('/orchestrate', orchestratorRouter)
 
 // === STANDARD API ENDPOINTS (API rate limiting) ===
 router.use('/assistants', apiRateLimiter, assistantsRouter)
