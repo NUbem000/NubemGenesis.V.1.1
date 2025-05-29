@@ -153,7 +153,7 @@ importers:
         version: 3.9.25
       '@getzep/zep-cloud':
         specifier: ~1.0.7
-        version: 1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6))
+        version: 1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i))
       '@getzep/zep-js':
         specifier: ^0.9.0
         version: 0.9.0
@@ -189,7 +189,7 @@ importers:
         version: 0.0.7(encoding@0.1.13)(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
       '@langchain/community':
         specifier: ^0.3.29
-        version: 0.3.37(99eba800c3e534e6dbf5cf298f378f4f)
+        version: 0.3.37(e2dkzumwpzzsjmxkkgznnssrwe)
       '@langchain/core':
         specifier: 0.3.37
         version: 0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
@@ -234,7 +234,7 @@ importers:
         version: 0.0.1(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))
       '@mem0/community':
         specifier: ^0.0.1
-        version: 0.0.1(254ddfae195afb1a282d20184ad11f71)
+        version: 0.0.1(cxuidq7vlffyr6e5q5d7eunqvy)
       '@mendable/firecrawl-js':
         specifier: ^0.0.28
         version: 0.0.28
@@ -300,7 +300,7 @@ importers:
         version: 4.4.3(bufferutil@4.0.8)(utf-8-validate@6.0.4)
       axios:
         specifier: 1.7.9
-        version: 1.7.9(debug@4.4.0)
+        version: 1.7.9(debug@4.3.4)
       cheerio:
         specifier: ^1.0.0-rc.12
         version: 1.0.0-rc.12
@@ -369,13 +369,13 @@ importers:
         version: 3.11.2
       langchain:
         specifier: ^0.3.5
-        version: 0.3.5(12da122448dfcc4327f6a79a33afe8d6)
+        version: 0.3.5(tkf4vs7foi52thgsrwsqcrsa3i)
       langfuse:
         specifier: 3.3.4
         version: 3.3.4
       langfuse-langchain:
         specifier: ^3.3.4
-        version: 3.3.4(langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6))
+        version: 3.3.4(langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i))
       langsmith:
         specifier: 0.1.6
         version: 0.1.6
@@ -592,13 +592,16 @@ importers:
         version: 0.4.1
       axios:
         specifier: 1.7.9
-        version: 1.7.9(debug@4.4.0)
+        version: 1.7.9(debug@4.3.4)
       bull-board:
         specifier: ^2.1.3
         version: 2.1.3
       bullmq:
         specifier: ^5.42.0
         version: 5.43.0
+      chokidar:
+        specifier: ^3.6.0
+        version: 3.6.0
       content-disposition:
         specifier: 0.5.4
         version: 0.5.4
@@ -611,6 +614,9 @@ importers:
       dotenv:
         specifier: ^16.0.0
         version: 16.4.5
+      eventsource:
+        specifier: ^2.0.2
+        version: 2.0.2
       express:
         specifier: ^4.17.3
         version: 4.21.1
@@ -659,6 +665,9 @@ importers:
       mysql2:
         specifier: ^3.11.3
         version: 3.11.4
+      node-cron:
+        specifier: ^3.0.3
+        version: 3.0.3
       nubemgenesis-components:
         specifier: workspace:^
         version: link:../components
@@ -869,7 +878,7 @@ importers:
         version: 4.21.24(@babel/runtime@7.26.9)(@codemirror/autocomplete@6.14.0(@codemirror/language@6.10.1)(@codemirror/state@6.4.1)(@codemirror/view@6.26.3)(@lezer/common@1.2.1))(@codemirror/language@6.10.1)(@codemirror/lint@6.5.0)(@codemirror/search@6.5.6)(@codemirror/state@6.4.1)(@codemirror/theme-one-dark@6.1.2)(@codemirror/view@6.26.3)(codemirror@6.0.1(@lezer/common@1.2.1))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       axios:
         specifier: 1.7.9
-        version: 1.7.9(debug@4.4.0)
+        version: 1.7.9(debug@4.3.4)
       clsx:
         specifier: ^1.1.1
         version: 1.2.1
@@ -9556,6 +9565,10 @@ packages:
     resolution: {integrity: sha512-T1C0XCUimhxVQzW4zFipdx0SficT651NnkR0ZSH3yQwh+mFMdLfgjABVi4YtMTtaL4s168593DaoaRLMqryavA==}
     engines: {node: '>=18.0.0'}
 
+  eventsource@2.0.2:
+    resolution: {integrity: sha512-IzUmBGPR3+oUG9dUeXynyNmf91/3zUSJg1lCktzKw47OXuhco54U3r9B7O4XX+Rb1Itm9OZ2b0RkTs10bICOxA==}
+    engines: {node: '>=12.0.0'}
+
   eventsource@3.0.5:
     resolution: {integrity: sha512-LT/5J605bx5SNyE+ITBDiM3FxffBiq9un7Vx0EwMDM3vg8sWKx/tO2zC+LMqZ+smAM0F2hblaDZUVZF0te2pSw==}
     engines: {node: '>=18.0.0'}
@@ -12832,6 +12845,10 @@ packages:
 
   node-cleanup@2.1.2:
     resolution: {integrity: sha512-qN8v/s2PAJwGUtr1/hYTpNKlD6Y9rc4p8KSmJXyGdYGZsDGKXrGThikLFP9OCHFeLeEpQzPwiAtdIvBLqm//Hw==}
+
+  node-cron@3.0.3:
+    resolution: {integrity: sha512-dOal67//nohNgYWb+nWmg5dkFdIwDm8EpeGYMekPMrngV3637lqnX0lbUcCtgibHTz6SEz7DAIjKvKDFYCnO1A==}
+    engines: {node: '>=6.0.0'}
 
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
@@ -20900,7 +20917,7 @@ snapshots:
 
   '@gar/promisify@1.1.3': {}
 
-  '@getzep/zep-cloud@1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6))':
+  '@getzep/zep-cloud@1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i))':
     dependencies:
       form-data: 4.0.0
       node-fetch: 2.7.0(encoding@0.1.13)
@@ -20909,7 +20926,7 @@ snapshots:
       zod: 3.23.8
     optionalDependencies:
       '@langchain/core': 0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
-      langchain: 0.3.5(12da122448dfcc4327f6a79a33afe8d6)
+      langchain: 0.3.5(tkf4vs7foi52thgsrwsqcrsa3i)
     transitivePeerDependencies:
       - encoding
 
@@ -21678,7 +21695,7 @@ snapshots:
       - encoding
       - openai
 
-  '@langchain/community@0.3.37(99eba800c3e534e6dbf5cf298f378f4f)':
+  '@langchain/community@0.3.37(e2dkzumwpzzsjmxkkgznnssrwe)':
     dependencies:
       '@browserbasehq/stagehand': 1.9.0(@playwright/test@1.49.1)(bufferutil@4.0.8)(deepmerge@4.3.1)(dotenv@16.4.5)(encoding@0.1.13)(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))(utf-8-validate@6.0.4)(zod@3.22.4)
       '@ibm-cloud/watsonx-ai': 1.1.2
@@ -21689,7 +21706,7 @@ snapshots:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.1.0
       js-yaml: 4.1.0
-      langchain: 0.3.5(12da122448dfcc4327f6a79a33afe8d6)
+      langchain: 0.3.5(tkf4vs7foi52thgsrwsqcrsa3i)
       langsmith: 0.2.15(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
       openai: 4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)
       uuid: 10.0.0
@@ -21706,7 +21723,7 @@ snapshots:
       '@browserbasehq/sdk': 2.0.0(encoding@0.1.13)
       '@datastax/astra-db-ts': 1.5.0
       '@elastic/elasticsearch': 8.12.2
-      '@getzep/zep-cloud': 1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6))
+      '@getzep/zep-cloud': 1.0.7(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i))
       '@getzep/zep-js': 0.9.0
       '@gomomento/sdk': 1.68.1(encoding@0.1.13)
       '@gomomento/sdk-core': 1.68.1
@@ -22014,11 +22031,11 @@ snapshots:
       - encoding
       - supports-color
 
-  '@mem0/community@0.0.1(254ddfae195afb1a282d20184ad11f71)':
+  '@mem0/community@0.0.1(cxuidq7vlffyr6e5q5d7eunqvy)':
     dependencies:
-      '@langchain/community': 0.3.37(99eba800c3e534e6dbf5cf298f378f4f)
+      '@langchain/community': 0.3.37(e2dkzumwpzzsjmxkkgznnssrwe)
       '@langchain/core': 0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       mem0ai: 2.1.12(@anthropic-ai/sdk@0.37.0(encoding@0.1.13))(@qdrant/js-client-rest@1.9.0(typescript@5.5.2))(@supabase/supabase-js@2.39.8(bufferutil@4.0.8)(utf-8-validate@6.0.4))(@types/jest@29.5.14)(@types/pg@8.11.6)(@types/sqlite3@3.1.11)(encoding@0.1.13)(groq-sdk@0.5.0(encoding@0.1.13))(neo4j-driver@5.27.0)(ollama@0.5.14)(pg@8.13.3)(redis@4.6.13)(sqlite3@5.1.7)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))
       uuid: 9.0.1
       zod: 3.22.4
@@ -22171,7 +22188,7 @@ snapshots:
 
   '@mendable/firecrawl-js@0.0.28':
     dependencies:
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       dotenv: 16.4.5
       uuid: 9.0.1
       zod: 3.23.8
@@ -26322,7 +26339,7 @@ snapshots:
       '@crawlee/types': 3.8.1
       agentkeepalive: 4.5.0
       async-retry: 1.3.3
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       content-type: 1.0.5
       ow: 0.28.2
       tslib: 2.6.2
@@ -29188,6 +29205,8 @@ snapshots:
 
   eventsource-parser@3.0.0: {}
 
+  eventsource@2.0.2: {}
+
   eventsource@3.0.5:
     dependencies:
       eventsource-parser: 3.0.0
@@ -29734,7 +29753,7 @@ snapshots:
       '@babel/core': 7.24.0
       '@microsoft/fetch-event-source': 2.0.1
       '@ts-stack/markdown': 1.5.0
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       cors: 2.8.5
       cross-env: 7.0.3
       device-detector-js: 3.0.3
@@ -32312,7 +32331,7 @@ snapshots:
 
   kuler@2.0.0: {}
 
-  langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6):
+  langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i):
     dependencies:
       '@langchain/core': 0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4))
       '@langchain/openai': 0.3.13(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))
@@ -32336,7 +32355,7 @@ snapshots:
       '@langchain/groq': 0.1.2(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))
       '@langchain/mistralai': 0.2.0(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))
       '@langchain/ollama': 0.2.0(@langchain/core@0.3.37(openai@4.96.0(encoding@0.1.13)(ws@8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4))(zod@3.22.4)))
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       cheerio: 1.0.0-rc.12
       typeorm: 0.3.20(ioredis@5.4.2)(mongodb@6.3.0(socks@2.8.1))(mysql2@3.11.4)(pg@8.13.3)(redis@4.6.13)(sqlite3@5.1.7)(ts-node@10.9.2(@swc/core@1.4.6)(@types/node@22.13.9)(typescript@5.5.2))
     transitivePeerDependencies:
@@ -32350,9 +32369,9 @@ snapshots:
     dependencies:
       mustache: 4.2.0
 
-  langfuse-langchain@3.3.4(langchain@0.3.5(12da122448dfcc4327f6a79a33afe8d6)):
+  langfuse-langchain@3.3.4(langchain@0.3.5(tkf4vs7foi52thgsrwsqcrsa3i)):
     dependencies:
-      langchain: 0.3.5(12da122448dfcc4327f6a79a33afe8d6)
+      langchain: 0.3.5(tkf4vs7foi52thgsrwsqcrsa3i)
       langfuse: 3.3.4
       langfuse-core: 3.3.4
 
@@ -33112,7 +33131,7 @@ snapshots:
       '@types/jest': 29.5.14
       '@types/pg': 8.11.6
       '@types/sqlite3': 3.1.11
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       groq-sdk: 0.5.0(encoding@0.1.13)
       neo4j-driver: 5.27.0
       ollama: 0.5.14
@@ -33766,6 +33785,10 @@ snapshots:
   node-api-headers@1.1.0: {}
 
   node-cleanup@2.1.2: {}
+
+  node-cron@3.0.3:
+    dependencies:
+      uuid: 8.3.2
 
   node-domexception@1.0.0: {}
 
@@ -35185,7 +35208,7 @@ snapshots:
 
   posthog-node@3.6.3:
     dependencies:
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       rusha: 0.8.14
     transitivePeerDependencies:
       - debug
@@ -36357,7 +36380,7 @@ snapshots:
 
   retry-axios@2.6.0(axios@1.7.9):
     dependencies:
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
 
   retry-request@7.0.2(encoding@0.1.13):
     dependencies:
@@ -38819,7 +38842,7 @@ snapshots:
 
   wikipedia@2.1.2:
     dependencies:
-      axios: 1.7.9(debug@4.4.0)
+      axios: 1.7.9(debug@4.3.4)
       infobox-parser: 3.6.4
     transitivePeerDependencies:
       - debug

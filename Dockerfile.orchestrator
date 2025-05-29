@@ -13,7 +13,7 @@ COPY packages/components/package.json ./packages/components/
 COPY packages/ui/package.json ./packages/ui/
 
 # Install pnpm
-RUN npm install -g pnpm@8.15.6
+RUN npm install -g pnpm@9.15.0
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -31,7 +31,7 @@ FROM node:20-alpine AS production
 RUN apk add --no-cache curl bash docker-cli
 
 # Install pnpm
-RUN npm install -g pnpm@8.15.6 pm2
+RUN npm install -g pnpm@9.15.0 pm2
 
 WORKDIR /app
 

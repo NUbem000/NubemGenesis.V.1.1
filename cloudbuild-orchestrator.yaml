@@ -54,25 +54,17 @@ steps:
     ]
     id: 'deploy-litellm'
 
-  # Step 5: Get LiteLLM service URL
+  # Step 5: Deploy orchestrator to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: bash
     args:
       - '-c'
       - |
-        LITELLM_URL=$(gcloud run services describe litellm-proxy --region=us-central1 --format='value(status.url)')
-        echo "LiteLLM URL: $LITELLM_URL"
-        echo "$LITELLM_URL" > /workspace/litellm_url.txt
-    waitFor: ['deploy-litellm']
-    id: 'get-litellm-url'
-
-  # Step 6: Deploy orchestrator to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        LITELLM_URL=$(cat /workspace/litellm_url.txt)
+        # Get LiteLLM service URL
+        LITELLM_URL=$(gcloud run services describe litellm-proxy --region=us-central1 --format='value(status.url)' || echo "http://litellm-proxy")
+        echo "LiteLLM URL: ${LITELLM_URL}"
+        
+        # Deploy orchestrator
         gcloud run deploy nubemgenesis-orchestrator \
           --image gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:$SHORT_SHA \
           --region us-central1 \
@@ -93,7 +85,7 @@ steps:
           --set-secrets "LANGSMITH_API_KEY=langsmith-api-key:latest" \
           --set-secrets "LANGFUSE_PUBLIC_KEY=langfuse-public-key:latest" \
           --set-secrets "LANGFUSE_SECRET_KEY=langfuse-secret-key:latest"
-    waitFor: ['get-litellm-url']
+    waitFor: ['deploy-litellm']
     id: 'deploy-orchestrator'
 
   # Step 7: Set up Cloud Scheduler jobs

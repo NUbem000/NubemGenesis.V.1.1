@@ -1,0 +1,44 @@
+# Simplified Cloud Build configuration for initial deployment
+steps:
+  # Build main orchestrator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'Dockerfile.orchestrator-minimal',
+      '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:latest',
+      '.'
+    ]
+    id: 'build-orchestrator'
+
+  # Push image to GCR
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:latest']
+    waitFor: ['build-orchestrator']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'nubemgenesis-orchestrator',
+      '--image', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated',
+      '--memory', '2Gi',
+      '--cpu', '1',
+      '--timeout', '300',
+      '--max-instances', '5',
+      '--set-env-vars', 'NODE_ENV=production',
+      '--set-env-vars', 'USE_LITELLM_V2=false',
+      '--set-env-vars', 'PORT=3000'
+    ]
+
+# Build configuration
+timeout: 1200s
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+# Images
+images:
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:latest'
