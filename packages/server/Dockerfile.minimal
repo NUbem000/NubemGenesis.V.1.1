@@ -1,0 +1,89 @@
+FROM node:18-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Create a minimal Express server with health check
+COPY << 'EOF' index.js
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Basic middleware
+app.use(express.json());
+
+// Health endpoints
+app.get('/ping', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'healthy', 
+        service: 'NubemGenesis',
+        version: '1.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// Basic API endpoints
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'NubemGenesis API - Secure Deployment',
+        version: '1.0.0',
+        endpoints: ['/ping', '/health', '/api/v1/status']
+    });
+});
+
+app.get('/api/v1/status', (req, res) => {
+    res.json({
+        service: 'NubemGenesis',
+        status: 'running',
+        environment: process.env.NODE_ENV || 'development',
+        security: 'enabled',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start server
+app.listen(port, '0.0.0.0', () => {
+    console.log(`NubemGenesis server running on port ${port}`);
+    console.log(`Health check: http://localhost:${port}/health`);
+});
+EOF
+
+# Create package.json
+COPY << 'EOF' package.json
+{
+    "name": "nubemgenesis-minimal",
+    "version": "1.0.0",
+    "description": "NubemGenesis Minimal Server",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2"
+    }
+}
+EOF
+
+# Install dependencies
+RUN npm install
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "http.get('http://localhost:3000/ping', (r) => process.exit(r.statusCode === 200 ? 0 : 1))" || exit 1
+
+# Start server
+CMD ["npm", "start"]

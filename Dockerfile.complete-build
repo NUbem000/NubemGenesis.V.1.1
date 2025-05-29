@@ -1,0 +1,82 @@
+# Stage 1: Build the complete monorepo
+FROM node:18-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ cairo-dev pango-dev libjpeg-turbo-dev giflib-dev
+
+# Install pnpm
+RUN npm install -g pnpm@latest turbo
+
+WORKDIR /app
+
+# Copy workspace configuration first
+COPY package.json pnpm-workspace.yaml turbo.json ./
+
+# Copy all packages
+COPY packages ./packages
+
+# Install ALL dependencies (including dev)
+RUN pnpm install --no-frozen-lockfile
+
+# Build all packages in the correct order
+RUN pnpm run build
+
+# Stage 2: Production image
+FROM node:18-alpine
+
+# Install production runtime dependencies
+RUN apk add --no-cache dumb-init cairo pango libjpeg-turbo giflib
+
+# Create non-root user
+RUN addgroup -g 1001 -S nubem && \
+    adduser -S nubem -u 1001
+
+WORKDIR /app
+
+# Copy package files
+COPY --from=builder --chown=nubem:nubem /app/package.json ./
+COPY --from=builder --chown=nubem:nubem /app/pnpm-workspace.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy built packages
+COPY --from=builder --chown=nubem:nubem /app/packages ./packages
+
+# Copy node_modules from builder (to avoid rebuilding)
+COPY --from=builder --chown=nubem:nubem /app/node_modules ./node_modules
+
+# Create a simple startup script to fix the UI path issue
+RUN echo '#!/bin/sh' > /app/start.sh && \
+    echo 'cd /app/packages/server' >> /app/start.sh && \
+    echo '# Create symlink for UI if it doesnt exist' >> /app/start.sh && \
+    echo 'if [ ! -L "node_modules/flowise-ui" ]; then' >> /app/start.sh && \
+    echo '  mkdir -p node_modules' >> /app/start.sh && \
+    echo '  ln -sf /app/packages/ui node_modules/flowise-ui' >> /app/start.sh && \
+    echo 'fi' >> /app/start.sh && \
+    echo '# Start the server' >> /app/start.sh && \
+    echo 'exec node dist/index.js' >> /app/start.sh && \
+    chmod +x /app/start.sh && \
+    chown nubem:nubem /app/start.sh
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Switch to non-root user
+USER nubem
+
+# Set working directory
+WORKDIR /app/packages/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["/app/start.sh"]
+
+EXPOSE 3000

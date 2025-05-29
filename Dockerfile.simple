@@ -24,4 +24,3 @@ EXPOSE 3000
 
 # Comando para iniciar la aplicación
 CMD ["pnpm", "start"]
-EOF < /dev/null

@@ -1,0 +1,77 @@
+# Prometheus Configuration for NubemGenesis
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'production'
+    project: 'nubemgenesis'
+    region: 'us-central1'
+
+# Alerting rules
+rule_files:
+  - "alert-rules.yml"
+  - "recording-rules.yml"
+
+# Alert manager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Scrape configurations
+scrape_configs:
+  # Application metrics
+  - job_name: 'nubemgenesis-app'
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nubemgenesis:3000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'nubemgenesis-app'
+
+  # Health check metrics
+  - job_name: 'nubemgenesis-health'
+    metrics_path: '/health'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['nubemgenesis:3000']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'up'
+        target_label: service
+        replacement: 'nubemgenesis'
+
+  # Database metrics
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis metrics
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Node/Container metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Google Cloud metrics
+  - job_name: 'gcp-exporter'
+    static_configs:
+      - targets: ['stackdriver-exporter:9255']
+    scrape_interval: 60s
+    scrape_timeout: 50s
+
+# Remote storage for long-term retention
+remote_write:
+  - url: 'https://prometheus-us-central1.grafana.net/api/prom/push'
+    basic_auth:
+      username: '${GRAFANA_CLOUD_USERNAME}'
+      password: '${GRAFANA_CLOUD_API_KEY}'

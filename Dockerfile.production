@@ -1,67 +1,80 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:18-alpine AS builder
 
-# Instalar dependencias necesarias para compilación
-RUN apk add --no-cache python3 make g++ git
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ cairo-dev pango-dev libjpeg-turbo-dev giflib-dev
+
+# Install pnpm
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
-# Instalar pnpm
-RUN npm install -g pnpm
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml ./
+COPY turbo.json ./
 
-# Copiar archivos de configuración
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY packages/server/package.json ./packages/server/
-COPY packages/ui/package.json ./packages/ui/
-COPY packages/components/package.json ./packages/components/
-COPY packages/api-documentation/package.json ./packages/api-documentation/
+# Copy all packages
+COPY packages ./packages
 
-# Instalar dependencias
+# Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copiar el código fuente
-COPY . .
-
-# Construir la aplicación
+# Build all packages
 RUN pnpm build
 
 # Production stage
-FROM node:20-alpine
+FROM node:18-alpine
 
-# Instalar solo las dependencias de runtime necesarias
-RUN apk add --no-cache tini
+# Install production dependencies only
+RUN apk add --no-cache dumb-init cairo pango libjpeg-turbo giflib
+
+# Create non-root user
+RUN addgroup -g 1001 -S nubem && \
+    adduser -S nubem -u 1001
 
 WORKDIR /app
 
-# Instalar pnpm
-RUN npm install -g pnpm
+# Copy built application
+COPY --from=builder --chown=nubem:nubem /app/packages/server/dist ./packages/server/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/server/bin ./packages/server/bin
+COPY --from=builder --chown=nubem:nubem /app/packages/server/marketplaces ./packages/server/marketplaces
+COPY --from=builder --chown=nubem:nubem /app/packages/server/oauth2.html ./packages/server/oauth2.html
+COPY --from=builder --chown=nubem:nubem /app/packages/server/package.json ./packages/server/
 
-# Copiar archivos necesarios del builder
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
-COPY --from=builder /app/pnpm-workspace.yaml ./
-COPY --from=builder /app/turbo.json ./
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/node_modules ./node_modules
+# Copy other built packages
+COPY --from=builder --chown=nubem:nubem /app/packages/components/dist ./packages/components/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/components/package.json ./packages/components/
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/dist ./packages/ui/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/package.json ./packages/ui/
 
-# Configurar usuario no root
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-USER nodejs
+# Copy root package.json for workspace info
+COPY --from=builder --chown=nubem:nubem /app/package.json ./
+COPY --from=builder --chown=nubem:nubem /app/pnpm-workspace.yaml ./
 
-# Variables de entorno
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Install production dependencies only
+WORKDIR /app
+RUN pnpm install --prod --frozen-lockfile
+
+# Set working directory to server
+WORKDIR /app/packages/server
+
+# Set environment
 ENV NODE_ENV=production
-ENV FLOWISE_HOST=0.0.0.0
-ENV FLOWISE_PORT=3000
-ENV APP_NAME=NubemGenesis
-ENV BRAND_NAME=NubemGenesis
-ENV DEFAULT_THEME=dark
 
-# Exponer puerto
+# Security: Drop all capabilities
+USER nubem
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]
+
 EXPOSE 3000
-
-# Usar tini para manejar señales correctamente
-ENTRYPOINT ["/sbin/tini", "--"]
-
-# Comando de inicio
-CMD ["pnpm", "start"]

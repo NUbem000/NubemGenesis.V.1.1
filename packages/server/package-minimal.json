@@ -1,0 +1,19 @@
+{
+    "name": "nubemgenesis-minimal",
+    "version": "1.0.0",
+    "description": "NubemGenesis Minimal Server - Phase 1 Deployment",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "test": "echo \"Phase 1 minimal deployment - tests in Phase 2\" && exit 0"
+    },
+    "dependencies": {
+        "express": "^4.18.2"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": ["nubemgenesis", "ai", "chatflow", "secure"],
+    "author": "NubemGenesis Team",
+    "license": "MIT"
+}

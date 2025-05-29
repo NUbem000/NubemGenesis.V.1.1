@@ -1,0 +1,265 @@
+name: Security Scanning & Vulnerability Assessment
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  sast-scanning:
+    name: Static Application Security Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Run ESLint Security Plugin
+      run: pnpm run lint:security
+      
+    - name: Semgrep Security Scan
+      uses: semgrep/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/typescript
+          p/owasp-top-ten
+        generateSarif: "1"
+        
+    - name: Upload Semgrep results to GitHub
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: semgrep.sarif
+      if: always()
+      
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        
+    - name: Snyk Code Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high --file=package.json
+        command: code test
+        
+  dependency-scanning:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: pnpm audit
+      run: pnpm audit --audit-level moderate
+      
+    - name: Snyk Dependency Scan
+      uses: snyk/actions/node@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=high
+        command: test
+        
+    - name: FOSSA License Scan
+      uses: fossas/fossa-action@main
+      with:
+        api-key: ${{ secrets.FOSSA_API_KEY }}
+        
+  container-scanning:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Build Docker image
+      run: |
+        docker build -f packages/server/Dockerfile.phase1 \
+          -t nubemgenesis:security-scan \
+          packages/server/
+          
+    - name: Trivy vulnerability scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'nubemgenesis:security-scan'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+        
+    - name: Hadolint Dockerfile scan
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: packages/server/Dockerfile.phase1
+        format: sarif
+        output-file: hadolint-results.sarif
+        
+    - name: Upload Hadolint results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: hadolint-results.sarif
+        
+  dast-scanning:
+    name: Dynamic Application Security Testing
+    runs-on: ubuntu-latest
+    needs: [sast-scanning]
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nubemgenesis_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Start test server
+      run: |
+        cd packages/server
+        npm start &
+        sleep 30
+      env:
+        NODE_ENV: test
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nubemgenesis_test
+        PORT: 3000
+        
+    - name: OWASP ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      with:
+        target: 'http://localhost:3000'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+        
+    - name: OWASP ZAP Full Scan
+      uses: zaproxy/action-full-scan@v0.8.0
+      with:
+        target: 'http://localhost:3000'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+      if: github.ref == 'refs/heads/main'
+      
+  security-report:
+    name: Security Report Generation
+    runs-on: ubuntu-latest
+    needs: [sast-scanning, dependency-scanning, container-scanning]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Generate Security Report
+      run: |
+        echo "# Security Scan Report" > security-report.md
+        echo "Generated: $(date)" >> security-report.md
+        echo "" >> security-report.md
+        
+        echo "## SAST Results" >> security-report.md
+        echo "Status: ${{ needs.sast-scanning.result }}" >> security-report.md
+        echo "" >> security-report.md
+        
+        echo "## Dependency Scan Results" >> security-report.md
+        echo "Status: ${{ needs.dependency-scanning.result }}" >> security-report.md
+        echo "" >> security-report.md
+        
+        echo "## Container Scan Results" >> security-report.md
+        echo "Status: ${{ needs.container-scanning.result }}" >> security-report.md
+        echo "" >> security-report.md
+        
+        if [[ "${{ needs.sast-scanning.result }}" == "success" && 
+              "${{ needs.dependency-scanning.result }}" == "success" && 
+              "${{ needs.container-scanning.result }}" == "success" ]]; then
+          echo "✅ **Overall Status: PASSED**" >> security-report.md
+        else
+          echo "❌ **Overall Status: FAILED**" >> security-report.md
+        fi
+        
+    - name: Upload Security Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-report
+        path: security-report.md
+        
+    - name: Comment PR with Security Results
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('security-report.md', 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

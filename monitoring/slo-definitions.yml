@@ -1,0 +1,91 @@
+# Service Level Objectives (SLOs) for NubemGenesis
+
+# Service Level Indicators (SLIs)
+slis:
+  availability:
+    description: "Percentage of successful HTTP requests"
+    measurement: |
+      sum(rate(http_requests_total{code!~"5.."}[5m])) / 
+      sum(rate(http_requests_total[5m])) * 100
+    
+  latency_p95:
+    description: "95th percentile of request latency"
+    measurement: |
+      histogram_quantile(0.95, 
+        rate(http_request_duration_seconds_bucket[5m]))
+    
+  error_rate:
+    description: "Percentage of HTTP 5xx errors"
+    measurement: |
+      sum(rate(http_requests_total{code=~"5.."}[5m])) / 
+      sum(rate(http_requests_total[5m])) * 100
+
+# Service Level Objectives (SLOs)
+slos:
+  availability:
+    target: 99.9%      # 43.83 minutes downtime per month
+    measurement_window: 30d
+    alert_threshold: 99.5%
+    
+  latency_api:
+    target: 500ms      # 95th percentile
+    measurement_window: 5m
+    alert_threshold: 1000ms
+    
+  latency_ui:
+    target: 2000ms     # 95th percentile
+    measurement_window: 5m
+    alert_threshold: 3000ms
+    
+  error_rate:
+    target: 0.1%       # Less than 0.1% 5xx errors
+    measurement_window: 5m
+    alert_threshold: 1%
+
+# Business KPIs
+business_kpis:
+  daily_active_users:
+    description: "Number of unique users per day"
+    target: "> 1000"
+    measurement: "count(distinct(user_id)) per day"
+    
+  api_usage:
+    description: "API calls per minute"
+    target: "> 100 calls/min"
+    measurement: "rate(api_requests_total[1m])"
+    
+  chat_completions:
+    description: "Successful chat completions"
+    target: "> 95% success rate"
+    measurement: "chat_completions_success / chat_completions_total"
+    
+  user_retention:
+    description: "7-day user retention rate"
+    target: "> 70%"
+    measurement: "returning_users / total_users (7d window)"
+
+# Alert Rules Based on SLOs
+alert_rules:
+  - name: "HighErrorRate"
+    condition: "error_rate > 1%"
+    for: "5m"
+    severity: "critical"
+    description: "Error rate is above SLO threshold"
+    
+  - name: "HighLatency"
+    condition: "latency_p95 > 1s"
+    for: "2m"
+    severity: "warning"
+    description: "95th percentile latency is above SLO"
+    
+  - name: "LowAvailability"
+    condition: "availability < 99.5%"
+    for: "1m"
+    severity: "critical"
+    description: "Service availability below SLO"
+    
+  - name: "CapacityAlert"
+    condition: "cpu_usage > 80%"
+    for: "10m"
+    severity: "warning"
+    description: "High CPU usage detected"

@@ -1,25 +1,25 @@
 steps:
-  # Construir imagen completa con branding NubemGenesis
+  # Build the Docker image with complete monorepo
   - name: 'gcr.io/cloud-builders/docker'
-    args:
+    args: 
       - 'build'
       - '-t'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:complete'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:latest'
       - '-t'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:latest'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:production'
       - '-f'
-      - 'Dockerfile.final'
+      - 'Dockerfile.complete-build'
       - '.'
-    timeout: '1200s'
-    id: 'build-image'
+    timeout: 1800s
 
-  # Publicar imagen
+  # Push the Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '--all-tags', 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app']
-    waitFor: ['build-image']
-    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis'
 
-  # Desplegar en Cloud Run
+  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -27,54 +27,39 @@ steps:
       - 'deploy'
       - 'nubemgenesis'
       - '--image'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:complete'
+      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:production'
       - '--region'
       - 'us-central1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--service-account'
-      - 'nubemgenesis-sa@${PROJECT_ID}.iam.gserviceaccount.com'
-      - '--add-cloudsql-instances'
-      - '${PROJECT_ID}:us-central1:nubemgenesis-db'
-      - '--set-secrets'
-      - 'DATABASE_TYPE=DATABASE_TYPE:latest,DATABASE_HOST=DATABASE_HOST:latest,DATABASE_PORT=DATABASE_PORT:latest,DATABASE_NAME=DATABASE_NAME:latest,DATABASE_USER=DATABASE_USER:latest,DATABASE_PASSWORD=DATABASE_PASSWORD:latest,DATABASE_SSL=DATABASE_SSL:latest,REDIS_HOST=REDIS_HOST:latest,REDIS_PORT=REDIS_PORT:latest,REDIS_USERNAME=REDIS_USERNAME:latest,REDIS_PASSWORD=REDIS_PASSWORD:latest,REDIS_TLS=REDIS_TLS:latest,FLOWISE_USERNAME=FLOWISE_USERNAME:latest,FLOWISE_PASSWORD=FLOWISE_PASSWORD:latest,FLOWISE_SECRETKEY_OVERWRITE=FLOWISE_SECRETKEY_OVERWRITE:latest,JWT_SECRET=JWT_SECRET:latest,LOG_LEVEL=LOG_LEVEL:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,GOOGLE_API_KEY=GOOGLE_API_KEY:latest,ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest,MISTRAL_API_KEY=MISTRAL_API_KEY:latest,DEEPSEEK_API_KEY=DEEPSEEK_API_KEY:latest,CORS_ORIGINS=CORS_ORIGINS:latest,IFRAME_ORIGINS=IFRAME_ORIGINS:latest,FLOWISE_FILE_SIZE_LIMIT=FLOWISE_FILE_SIZE_LIMIT:latest'
-      - '--min-instances'
-      - '1'
-      - '--max-instances'
-      - '10'
+      - '--port'
+      - '3000'
       - '--memory'
       - '4Gi'
       - '--cpu'
       - '2'
-      - '--port'
-      - '3000'
+      - '--min-instances'
+      - '1'
+      - '--max-instances'
+      - '10'
       - '--timeout'
       - '300'
-    waitFor: ['push-image']
-    id: 'deploy-service'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,FLOWISE_USERNAME=admin,FLOWISE_PASSWORD=${_FLOWISE_PASSWORD}'
+      - '--set-secrets'
+      - 'DATABASE_PASSWORD=nubemgenesis-db-password:latest,PASSPHRASE=nubemgenesis-passphrase:latest,JWT_SECRET=nubemgenesis-jwt-secret:latest'
 
-  # Verificar despliegue
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: bash
-    args:
-      - '-c'
-      - |
-        echo "=== Despliegue completado ==="
-        echo "Servicio: NubemGenesis"
-        echo "URL principal: https://nubemgenesis.ai"
-        echo "URL de Cloud Run: https://nubemgenesis-394068846550.us-central1.run.app"
-        echo "Tiempo total de compilación: $$BUILD_DURATION segundos"
-        echo "==========================="
-    waitFor: ['deploy-service']
-
-# Configuración optimizada para compilación rápida
-timeout: '1800s'
-options:
-  logging: CLOUD_LOGGING_ONLY
-  machineType: 'N1_HIGHCPU_8'
-  diskSizeGb: 100
-  
 images:
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:complete'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/app:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:latest'
+  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:production'
+
+timeout: 2400s
+
+options:
+  machineType: 'E2_HIGHCPU_32'
+  diskSizeGb: 100
+  logging: CLOUD_LOGGING_ONLY
+
+substitutions:
+  _FLOWISE_PASSWORD: 'NubemGen2025!'

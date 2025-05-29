@@ -1,0 +1,51 @@
+# Use existing Flowise image as base
+FROM flowiseai/flowise:latest AS base
+
+# Stage 1: Customize for NubemGenesis
+FROM node:18-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S nubem && \
+    adduser -S nubem -u 1001
+
+WORKDIR /app
+
+# Copy from base Flowise image
+COPY --from=base --chown=nubem:nubem /app /app
+
+# Apply NubemGenesis customizations
+# Copy custom components if any
+COPY --chown=nubem:nubem packages/components/src /app/packages/components/src
+COPY --chown=nubem:nubem packages/ui/public /app/packages/ui/public
+
+# Fix the UI path issue by creating proper symlinks
+RUN cd /app/packages/server && \
+    mkdir -p node_modules && \
+    ln -sf /app/packages/ui node_modules/flowise-ui && \
+    ln -sf /app/packages/components node_modules/flowise-components && \
+    chown -R nubem:nubem /app
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Switch to non-root user
+USER nubem
+
+# Set working directory
+WORKDIR /app/packages/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]
+
+EXPOSE 3000

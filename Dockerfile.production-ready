@@ -1,0 +1,75 @@
+# Build stage
+FROM node:20-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy configuration files
+COPY package.json pnpm-workspace.yaml turbo.json ./
+
+# Copy pnpm-lock.yaml if it exists
+COPY pnpm-lock.yaml* ./
+
+# Copy package.json files
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+
+# Install dependencies (allow missing lockfile)
+RUN pnpm install --no-frozen-lockfile || pnpm install
+
+# Copy source code
+COPY . .
+
+# Build packages
+RUN pnpm build || (pnpm install && pnpm build)
+
+# Production stage
+FROM node:20-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy from builder
+COPY --from=builder /app ./
+
+# Create UI symlinks for server to find
+RUN mkdir -p /app/node_modules/flowise-ui && \
+    mkdir -p /app/node_modules/nubemgenesis-ui && \
+    if [ -d "/app/packages/ui/build" ]; then \
+      ln -sf /app/packages/ui/build /app/node_modules/flowise-ui/dist && \
+      ln -sf /app/packages/ui/build /app/node_modules/nubemgenesis-ui/dist; \
+    elif [ -d "/app/packages/ui/dist" ]; then \
+      ln -sf /app/packages/ui/dist /app/node_modules/flowise-ui/dist && \
+      ln -sf /app/packages/ui/dist /app/node_modules/nubemgenesis-ui/dist; \
+    fi
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Start command
+CMD ["pnpm", "start"]

@@ -1,0 +1,95 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+# Install build dependencies including canvas deps
+RUN apk add --no-cache python3 make g++ git cairo-dev pango-dev libjpeg-turbo-dev giflib-dev
+
+# Install pnpm
+RUN npm install -g pnpm@9.0.0
+
+WORKDIR /app
+
+# Copy configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Create directory structure
+RUN mkdir -p packages/server packages/ui packages/components packages/api-documentation
+
+# Copy package.json files for workspaces
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+
+# Copy custom packages
+COPY packages/server/custompackages ./packages/server/custompackages
+
+# Install dependencies
+RUN pnpm install --no-frozen-lockfile
+
+# Copy all source code
+COPY . .
+
+# Build the application
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
+
+# Production stage
+FROM node:18-alpine
+
+# Install production runtime dependencies
+RUN apk add --no-cache dumb-init cairo pango libjpeg-turbo giflib
+
+# Create non-root user
+RUN addgroup -g 1001 -S nubem && \
+    adduser -S nubem -u 1001
+
+WORKDIR /app
+
+# Copy built application from builder
+COPY --from=builder --chown=nubem:nubem /app/packages/server/dist ./packages/server/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/server/bin ./packages/server/bin
+COPY --from=builder --chown=nubem:nubem /app/packages/server/marketplaces ./packages/server/marketplaces
+COPY --from=builder --chown=nubem:nubem /app/packages/server/oauth2.html ./packages/server/oauth2.html
+COPY --from=builder --chown=nubem:nubem /app/packages/server/package.json ./packages/server/
+COPY --from=builder --chown=nubem:nubem /app/packages/server/node_modules ./packages/server/node_modules
+
+# Copy built UI - THIS IS THE KEY PART
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/dist ./packages/ui/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/package.json ./packages/ui/
+
+# Copy built components
+COPY --from=builder --chown=nubem:nubem /app/packages/components/dist ./packages/components/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/components/package.json ./packages/components/
+
+# Copy workspace files
+COPY --from=builder --chown=nubem:nubem /app/package.json ./
+COPY --from=builder --chown=nubem:nubem /app/pnpm-workspace.yaml ./
+
+# Create symlink for flowise-ui -> nubemgenesis-ui
+RUN cd /app/packages/server && \
+    mkdir -p node_modules && \
+    ln -sf /app/packages/ui node_modules/flowise-ui && \
+    ln -sf /app/packages/components node_modules/flowise-components && \
+    chown -R nubem:nubem /app
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Switch to non-root user
+USER nubem
+
+# Set working directory
+WORKDIR /app/packages/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]
+
+EXPOSE 3000

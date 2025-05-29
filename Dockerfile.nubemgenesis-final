@@ -1,0 +1,82 @@
+# Multi-stage build for NubemGenesis monorepo
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ git
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy workspace configuration
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Copy all package.json files to leverage Docker cache
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build all packages
+RUN pnpm build
+
+# Create a simple patch for the server to find the UI
+RUN sed -i "s/getNodeModulesPackagePath('flowise-ui')/getNodeModulesPackagePath('nubemgenesis-ui')/g" packages/server/dist/index.js 2>/dev/null || true && \
+    sed -i "s/flowise-ui/nubemgenesis-ui/g" packages/server/dist/index.js 2>/dev/null || true
+
+# Production stage
+FROM node:20-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache python3
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy built application
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/turbo.json ./
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/node_modules ./node_modules
+
+# Create symbolic link for UI if needed
+RUN if [ -d "packages/ui/build" ]; then \
+      mkdir -p node_modules/nubemgenesis-ui && \
+      ln -sf /app/packages/ui/build /app/node_modules/nubemgenesis-ui/dist; \
+    elif [ -d "packages/ui/dist" ]; then \
+      mkdir -p node_modules/nubemgenesis-ui && \
+      ln -sf /app/packages/ui/dist /app/node_modules/nubemgenesis-ui/dist; \
+    fi
+
+# Also create a fallback for flowise-ui
+RUN if [ -d "packages/ui/build" ]; then \
+      mkdir -p node_modules/flowise-ui && \
+      ln -sf /app/packages/ui/build /app/node_modules/flowise-ui/dist; \
+    elif [ -d "packages/ui/dist" ]; then \
+      mkdir -p node_modules/flowise-ui && \
+      ln -sf /app/packages/ui/dist /app/node_modules/flowise-ui/dist; \
+    fi
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/v1/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+CMD ["pnpm", "start"]

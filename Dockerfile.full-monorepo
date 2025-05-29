@@ -1,0 +1,84 @@
+# Build stage
+FROM node:20-slim AS builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy workspace configuration files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+
+# Copy package.json files for all packages
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy all source code
+COPY . .
+
+# Build all packages in the correct order
+RUN pnpm build
+
+# Check if UI was built
+RUN ls -la packages/ui/ && \
+    (ls -la packages/ui/build 2>/dev/null || ls -la packages/ui/dist 2>/dev/null || echo "UI build directory not found")
+
+# Production stage
+FROM node:20-slim
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install pnpm for production
+RUN npm install -g pnpm@9
+
+# Copy package files
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/turbo.json ./
+
+# Copy built packages
+COPY --from=builder /app/packages ./packages
+
+# Copy node_modules (with workspace links preserved)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy the UI serving utility
+COPY --from=builder /app/packages/server/src/utils/serveUI.ts ./packages/server/src/utils/
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOST=0.0.0.0
+ENV FLOWISE_HOST=0.0.0.0
+ENV FLOWISE_PORT=3000
+
+# Expose port
+EXPOSE 3000
+
+# Create a startup script to handle the patched server
+RUN echo '#!/bin/sh\n\
+# If the patched index exists, use it\n\
+if [ -f "/app/packages/server/src/index.patched.ts" ]; then\n\
+  cp /app/packages/server/src/index.patched.ts /app/packages/server/src/index.ts\n\
+fi\n\
+# Start the application\n\
+exec pnpm start' > /app/start.sh && chmod +x /app/start.sh
+
+# Start command
+CMD ["/app/start.sh"]

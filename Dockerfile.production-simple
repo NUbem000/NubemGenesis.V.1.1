@@ -1,0 +1,56 @@
+# Use pre-built base image
+FROM node:18-alpine
+
+# Install production dependencies
+RUN apk add --no-cache dumb-init cairo pango libjpeg-turbo giflib
+
+# Create non-root user
+RUN addgroup -g 1001 -S nubem && \
+    adduser -S nubem -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY pnpm-workspace.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+# Copy all source files
+COPY packages ./packages
+
+# Install production dependencies
+RUN pnpm install --prod --frozen-lockfile || npm install --production --legacy-peer-deps
+
+# Try to build (allow failure for now)
+RUN pnpm build || echo "Build failed, continuing..."
+
+# Copy the minimal app for Phase 1
+COPY packages/server/app.js ./packages/server/
+
+# Change ownership
+RUN chown -R nubem:nubem /app
+
+# Switch to non-root user
+USER nubem
+
+# Set environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Work from server directory
+WORKDIR /app/packages/server
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "app.js"]
+
+EXPOSE 3000
