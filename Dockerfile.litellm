@@ -1,15 +1,38 @@
-# LiteLLM Proxy Dockerfile for NubemGenesis
-FROM ghcr.io/berriai/litellm:latest
+# LiteLLM Proxy
+FROM python:3.11-slim
 
-# Copy configuration
-COPY litellm-config.yaml /app/config.yaml
+# Install LiteLLM
+RUN pip install litellm[proxy] gunicorn
+
+# Create config file
+RUN echo 'model_list:\n\
+  - model_name: gpt-4\n\
+    litellm_params:\n\
+      model: openai/gpt-4\n\
+      api_key: os.environ/OPENAI_API_KEY\n\
+  - model_name: gpt-3.5-turbo\n\
+    litellm_params:\n\
+      model: openai/gpt-3.5-turbo\n\
+      api_key: os.environ/OPENAI_API_KEY\n\
+  - model_name: claude-3-opus\n\
+    litellm_params:\n\
+      model: anthropic/claude-3-opus-20240229\n\
+      api_key: os.environ/ANTHROPIC_API_KEY\n\
+  - model_name: claude-3-sonnet\n\
+    litellm_params:\n\
+      model: anthropic/claude-3-sonnet-20240229\n\
+      api_key: os.environ/ANTHROPIC_API_KEY\n\
+  - model_name: gemini-pro\n\
+    litellm_params:\n\
+      model: google/gemini-pro\n\
+      api_key: os.environ/GOOGLE_API_KEY\n\
+  - model_name: mixtral-8x7b\n\
+    litellm_params:\n\
+      model: groq/mixtral-8x7b-32768\n\
+      api_key: os.environ/GROQ_API_KEY\n' > /config.yaml
 
 # Expose port
-EXPOSE 4000
+EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:4000/health || exit 1
-
-# Start with config
-CMD ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "4"]
+# Run LiteLLM proxy
+CMD ["litellm", "--config", "/config.yaml", "--port", "8000"]

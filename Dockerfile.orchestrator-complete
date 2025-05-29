@@ -1,0 +1,56 @@
+# Complete production orchestrator with all features
+FROM node:20-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    docker.io \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files
+COPY deploy-orchestrator-complete.js ./
+COPY package.json ./
+COPY packages/server/src/orchestrator ./packages/server/src/orchestrator/
+COPY packages/components/dist/nodes ./packages/components/dist/nodes/
+
+# Install dependencies
+RUN npm install \
+    express \
+    cors \
+    node-cron \
+    chokidar \
+    vm2 \
+    dockerode \
+    axios \
+    eventsource
+
+# Create necessary directories
+RUN mkdir -p \
+    .capability-cache \
+    evaluations \
+    reports \
+    logs \
+    traces
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV LITELLM_PROXY_URL=http://litellm-proxy:8000
+ENV LANGSMITH_API_KEY=""
+ENV LANGFUSE_API_KEY=""
+ENV OPENAI_API_KEY=""
+ENV ANTHROPIC_API_KEY=""
+
+# Expose ports
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/v1/orchestrate/health || exit 1
+
+# Run the complete orchestrator
+CMD ["node", "deploy-orchestrator-complete.js"]

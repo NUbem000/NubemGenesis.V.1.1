@@ -1,0 +1,111 @@
+# Evaluation Configuration
+benchmarks:
+  general:
+    name: "General Knowledge & Understanding"
+    questions:
+      - prompt: "What is the capital of France?"
+        expected_patterns: ["paris", "Paris"]
+        category: "factual"
+      
+      - prompt: "Explain quantum computing in simple terms"
+        expected_patterns: ["quantum", "superposition", "qubit", "probability"]
+        category: "explanation"
+      
+      - prompt: "Write a Python function to calculate fibonacci numbers"
+        expected_patterns: ["def", "fibonacci", "return", "if n"]
+        category: "coding"
+
+  reasoning:
+    name: "Logical Reasoning & Problem Solving"
+    questions:
+      - prompt: "If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly?"
+        expected_patterns: ["no", "cannot conclude", "not necessarily"]
+        category: "logic"
+      
+      - prompt: "A bat and a ball cost $1.10. The bat costs $1.00 more than the ball. How much does the ball cost?"
+        expected_patterns: ["0.05", "5 cents", "five cents"]
+        category: "math"
+
+  coding:
+    name: "Code Generation & Understanding"
+    questions:
+      - prompt: "Write a function to reverse a string in Python"
+        expected_patterns: ["def", "reverse", "[::-1]", "return"]
+        category: "python"
+      
+      - prompt: "Implement binary search in JavaScript"
+        expected_patterns: ["function", "binarySearch", "while", "left", "right", "mid"]
+        category: "javascript"
+
+  multilingual:
+    name: "Multilingual Capabilities"
+    questions:
+      - prompt: "Traduce al español: The weather is beautiful today"
+        expected_patterns: ["clima", "tiempo", "hermoso", "bonito", "hoy"]
+        category: "translation"
+      
+      - prompt: "¿Cuál es la capital de España?"
+        expected_patterns: ["Madrid"]
+        category: "spanish"
+
+models:
+  - name: gpt-4
+    provider: openai
+    tier: premium
+    cost_per_1k_tokens: 0.03
+    
+  - name: gpt-3.5-turbo
+    provider: openai
+    tier: standard
+    cost_per_1k_tokens: 0.002
+    
+  - name: claude-3-opus
+    provider: anthropic
+    tier: premium
+    cost_per_1k_tokens: 0.015
+    
+  - name: claude-3-sonnet
+    provider: anthropic
+    tier: standard
+    cost_per_1k_tokens: 0.003
+    
+  - name: gemini-pro
+    provider: google
+    tier: standard
+    cost_per_1k_tokens: 0.001
+    
+  - name: mixtral-8x7b
+    provider: groq
+    tier: open
+    cost_per_1k_tokens: 0.0005
+
+evaluation_schedule:
+  daily:
+    - benchmark: general
+      models: [gpt-3.5-turbo, claude-3-sonnet, gemini-pro]
+      time: "02:00"
+      
+  weekly:
+    - benchmark: all
+      models: all
+      time: "Sunday 03:00"
+      
+  monthly:
+    - type: comprehensive_report
+      include_cost_analysis: true
+      include_performance_trends: true
+      time: "1st day 04:00"
+
+thresholds:
+  accuracy:
+    acceptable: 0.7
+    good: 0.85
+    excellent: 0.95
+    
+  latency:
+    acceptable: 3000
+    good: 1500
+    excellent: 500
+    
+  cost_efficiency:
+    score_formula: "accuracy / (cost * latency)"
