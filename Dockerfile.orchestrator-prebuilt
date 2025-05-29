@@ -1,0 +1,31 @@
+# Prebuilt NubemGenesis Orchestrator - assumes built files exist
+FROM node:20-slim
+
+# Install runtime dependencies only
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy the entire project (with built files)
+COPY . .
+
+# Install production dependencies only
+RUN npm install -g pnpm@9.15.0 && \
+    pnpm install --prod --frozen-lockfile
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV USE_LITELLM_V2=false
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/v1/orchestrate/health || exit 1
+
+# Assume the server is already built and run it
+CMD ["node", "packages/server/dist/index.js"]

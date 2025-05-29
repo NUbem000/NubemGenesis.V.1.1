@@ -1,10 +1,13 @@
-# Minimal NubemGenesis Orchestrator Dockerfile
+# Server-only build for NubemGenesis Orchestrator
 FROM node:20-slim
 
 # Install only essential dependencies
 RUN apt-get update && apt-get install -y \
     curl \
     git \
+    python3 \
+    make \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -22,13 +25,15 @@ COPY packages/server/custompackages ./packages/server/custompackages
 RUN npm install -g pnpm@9.15.0
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter "nubemgenesis-server..." --filter "nubemgenesis-components..."
 
-# Copy source code
-COPY . .
+# Copy only server and components source
+COPY packages/server ./packages/server
+COPY packages/components ./packages/components
 
-# Build the project
-RUN pnpm build
+# Build only server and components
+RUN cd packages/components && pnpm build
+RUN cd packages/server && pnpm build
 
 # Set environment variables
 ENV NODE_ENV=production

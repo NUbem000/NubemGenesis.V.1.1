@@ -4,7 +4,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-f', 'Dockerfile.orchestrator-minimal',
+      '-f', 'Dockerfile.orchestrator-simple-prod',
       '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator:latest',
       '.'
     ]
@@ -29,8 +29,7 @@ steps:
       '--timeout', '300',
       '--max-instances', '5',
       '--set-env-vars', 'NODE_ENV=production',
-      '--set-env-vars', 'USE_LITELLM_V2=false',
-      '--set-env-vars', 'PORT=3000'
+      '--set-env-vars', 'USE_LITELLM_V2=false'
     ]
 
 # Build configuration

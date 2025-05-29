@@ -463,7 +463,7 @@ function convertMessageContentToParts(message: BaseMessage, isMultimodalModel: b
             }
         ]
     } else if (Array.isArray(message.content)) {
-        messageParts = message.content.map((c) => {
+        messageParts = message.content.map((c): any => {
             if (c.type === 'text') {
                 return {
                     text: c.text
