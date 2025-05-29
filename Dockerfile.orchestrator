@@ -1,0 +1,68 @@
+# NubemGenesis Orchestrator Production Dockerfile
+FROM node:20-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ git
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/server/package.json ./packages/server/
+COPY packages/components/package.json ./packages/components/
+COPY packages/ui/package.json ./packages/ui/
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.6
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Build all packages
+RUN pnpm build
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache curl bash docker-cli
+
+# Install pnpm
+RUN npm install -g pnpm@8.15.6 pm2
+
+WORKDIR /app
+
+# Copy built application
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-lock.yaml ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/node_modules ./node_modules
+
+# Copy orchestrator specific files
+COPY litellm-config.yaml ./
+COPY deploy-orchestrator.sh ./
+
+# Create necessary directories
+RUN mkdir -p /app/.capability-cache /app/evaluations /app/logs
+
+# Install production dependencies only
+RUN pnpm install --prod --frozen-lockfile
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV USE_LITELLM_V2=true
+
+# Expose ports
+EXPOSE 3000 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/v1/orchestrate/health || exit 1
+
+# Start with PM2 for better process management
+CMD ["pm2-runtime", "start", "packages/server/dist/index.js", "--name", "orchestrator"]
