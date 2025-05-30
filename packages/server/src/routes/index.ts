@@ -126,4 +126,8 @@ router.use('/upsert-history', apiRateLimiter, upsertHistoryRouter)
 router.use('/executions', apiRateLimiter, executionsRouter)
 router.use('/validation', apiRateLimiter, validationRouter)
 
+// Import and add orchestrator V2 routes
+import orchestratorV2Router from './orchestrator/v2'
+router.use('/v2/orchestrate', apiRateLimiter, orchestratorV2Router)
+
 export default router

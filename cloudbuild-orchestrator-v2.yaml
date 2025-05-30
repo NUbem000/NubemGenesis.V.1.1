@@ -1,0 +1,57 @@
+steps:
+  # Step 1: Build the application using Cloud Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.production'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest'
+      - '.'
+    timeout: '1200s'
+
+  # Step 2: Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nubemgenesis-orchestrator-v2'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:$BUILD_ID'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '300'
+      - '--concurrency'
+      - '100'
+      - '--min-instances'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,USE_ORCHESTRATOR_V2=true,USE_LITELLM_V2=true,FLOWISE_USERNAME=admin'
+      - '--allow-unauthenticated'
+
+images:
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:$BUILD_ID'
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
