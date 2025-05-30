@@ -1,45 +1,43 @@
-# Production orchestrator deployment
 steps:
-  # Build orchestrator image
+  # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: [
-      'build',
-      '-f', 'Dockerfile.orchestrator-production',
-      '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-prod:latest',
-      '.'
-    ]
-    id: 'build-orchestrator'
-
-  # Push image to GCR
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-production:$COMMIT_SHA', '-f', 'Dockerfile.orchestrator-production', '.']
+  
+  # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-prod:latest']
-    waitFor: ['build-orchestrator']
-
+    args: ['push', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-production:$COMMIT_SHA']
+  
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'nubemgenesis-orchestrator-prod',
-      '--image', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-prod:latest',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--allow-unauthenticated',
-      '--memory', '4Gi',
-      '--cpu', '2',
-      '--timeout', '300',
-      '--max-instances', '10',
-      '--set-env-vars', 'NODE_ENV=production',
-      '--set-env-vars', 'USE_LITELLM_V2=false',
-      '--set-env-vars', 'OPENAI_API_KEY=sk-placeholder',
-      '--set-env-vars', 'ANTHROPIC_API_KEY=placeholder'
-    ]
+    args:
+      - 'run'
+      - 'deploy'
+      - 'nubemgenesis-orchestrator'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-production:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '4Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '600'
+      - '--max-instances'
+      - '100'
+      - '--min-instances'
+      - '1'
+      - '--service-account'
+      - 'nubemgenesis-orchestrator@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--set-env-vars'
+      - 'GCP_PROJECT=$PROJECT_ID,GCP_LOCATION=us-central1'
 
-# Build configuration
-timeout: 1200s
+images:
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-production:$COMMIT_SHA'
+
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: 'E2_HIGHCPU_8'
-
-# Images
-images:
-  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-prod:latest'

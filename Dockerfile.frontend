@@ -1,0 +1,17 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+# Install express
+RUN npm install express
+
+# Copy application files
+COPY frontend-orchestrator.html .
+COPY frontend-server.js .
+
+# Run as non-root user
+USER node
+
+EXPOSE 8080
+
+CMD ["node", "frontend-server.js"]

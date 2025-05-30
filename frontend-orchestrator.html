@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NubemGenesis Orchestrator</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const API_URL = 'https://nubemgenesis-orchestrator-7ut3uy4xcq-uc.a.run.app';
+
+        const LoadingSpinner = () => (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        );
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('orchestrate');
+            const [query, setQuery] = useState('');
+            const [requirements, setRequirements] = useState({
+                maxCost: 0.1,
+                maxLatency: 5000,
+                minQuality: 0.8
+            });
+            const [result, setResult] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [capabilities, setCapabilities] = useState([]);
+            const [leaderboard, setLeaderboard] = useState(null);
+            const [apiKey, setApiKey] = useState('demo-key-123');
+
+            useEffect(() => {
+                if (activeTab === 'capabilities') {
+                    fetchCapabilities();
+                } else if (activeTab === 'leaderboard') {
+                    fetchLeaderboard();
+                }
+            }, [activeTab]);
+
+            const fetchCapabilities = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    const response = await axios.get(`${API_URL}/api/v1/orchestrate/capabilities`);
+                    setCapabilities(response.data.capabilities || []);
+                } catch (err) {
+                    console.error('Error fetching capabilities:', err);
+                    setError('Error al cargar capacidades. El servicio puede estar iniciando.');
+                    // Set mock data for demo
+                    setCapabilities([
+                        { name: 'ChatGPT', description: 'Modelo de lenguaje avanzado', tags: ['LLM', 'OpenAI'] },
+                        { name: 'Document Loader', description: 'Carga documentos PDF/Word', tags: ['loader', 'documents'] },
+                        { name: 'Vector Store', description: 'Almacenamiento vectorial', tags: ['memory', 'embeddings'] }
+                    ]);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const fetchLeaderboard = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+                    const response = await axios.get(`${API_URL}/api/v1/orchestrate/leaderboard`);
+                    setLeaderboard(response.data);
+                } catch (err) {
+                    console.error('Error fetching leaderboard:', err);
+                    setError('Error al cargar leaderboard. Mostrando datos de demostración.');
+                    // Set mock data for demo
+                    setLeaderboard({
+                        rankings: [
+                            { name: 'claude-3-opus', metrics: { quality: 0.96, avgCost: 0.015, avgLatency: 1500 }, score: 0.95 },
+                            { name: 'gpt-4', metrics: { quality: 0.95, avgCost: 0.03, avgLatency: 2000 }, score: 0.92 },
+                            { name: 'gemini-pro', metrics: { quality: 0.88, avgCost: 0.001, avgLatency: 800 }, score: 0.90 },
+                            { name: 'gpt-3.5-turbo', metrics: { quality: 0.85, avgCost: 0.002, avgLatency: 1000 }, score: 0.85 }
+                        ]
+                    });
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const handleOrchestrate = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError(null);
+                setResult(null);
+
+                try {
+                    const response = await axios.post(
+                        `${API_URL}/api/v1/orchestrate`,
+                        { 
+                            request: query,
+                            config: {
+                                maxCost: requirements.maxCost,
+                                maxLatency: requirements.maxLatency,
+                                minQuality: requirements.minQuality
+                            }
+                        },
+                        { headers: { 'x-api-key': apiKey } }
+                    );
+                    setResult(response.data);
+                } catch (err) {
+                    setError(err.response?.data?.error || 'Error al procesar la solicitud');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const TabButton = ({ id, label, icon }) => (
+                <button
+                    onClick={() => setActiveTab(id)}
+                    className={`flex items-center space-x-2 px-6 py-3 font-medium transition-all ${
+                        activeTab === id
+                            ? 'text-white border-b-2 border-white'
+                            : 'text-gray-300 hover:text-white'
+                    }`}
+                >
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                </button>
+            );
+
+            return (
+                <div className="min-h-screen">
+                    {/* Header */}
+                    <div className="gradient-bg text-white">
+                        <div className="container mx-auto px-4 py-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h1 className="text-3xl font-bold">NubemGenesis Orchestrator</h1>
+                                    <p className="text-gray-200 mt-1">Sistema Inteligente de Orquestación de Agentes</p>
+                                </div>
+                                <div className="glass-morphism rounded-lg px-4 py-2">
+                                    <span className="text-sm">v2.0.0</span>
+                                </div>
+                            </div>
+                            
+                            {/* Tabs */}
+                            <div className="flex space-x-6 mt-8 border-b border-white/20">
+                                <TabButton id="orchestrate" label="Orquestar" icon="🎯" />
+                                <TabButton id="capabilities" label="Capacidades" icon="⚡" />
+                                <TabButton id="leaderboard" label="Modelos" icon="🏆" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="container mx-auto px-4 py-8">
+                        {/* API Key Input */}
+                        <div className="mb-6">
+                            <div className="bg-white rounded-lg shadow-sm p-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    API Key
+                                </label>
+                                <input
+                                    type="password"
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                    placeholder="Ingresa tu API key"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Orchestrate Tab */}
+                        {activeTab === 'orchestrate' && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                {/* Form */}
+                                <div className="bg-white rounded-lg shadow-lg p-6">
+                                    <h2 className="text-xl font-semibold mb-4">Crear Flujo</h2>
+                                    <form onSubmit={handleOrchestrate}>
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Describe tu flujo en lenguaje natural
+                                            </label>
+                                            <textarea
+                                                value={query}
+                                                onChange={(e) => setQuery(e.target.value)}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                rows="4"
+                                                placeholder="Ej: Necesito un chatbot que responda preguntas sobre documentos legales usando RAG"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-4 mb-6">
+                                            <h3 className="font-medium text-gray-700">Requisitos</h3>
+                                            
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">
+                                                    Costo Máximo: ${requirements.maxCost}
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="0.001"
+                                                    max="0.5"
+                                                    step="0.001"
+                                                    value={requirements.maxCost}
+                                                    onChange={(e) => setRequirements({...requirements, maxCost: parseFloat(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">
+                                                    Latencia Máxima: {requirements.maxLatency}ms
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="500"
+                                                    max="10000"
+                                                    step="100"
+                                                    value={requirements.maxLatency}
+                                                    onChange={(e) => setRequirements({...requirements, maxLatency: parseInt(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">
+                                                    Calidad Mínima: {requirements.minQuality}
+                                                </label>
+                                                <input
+                                                    type="range"
+                                                    min="0.5"
+                                                    max="1"
+                                                    step="0.05"
+                                                    value={requirements.minQuality}
+                                                    onChange={(e) => setRequirements({...requirements, minQuality: parseFloat(e.target.value)})}
+                                                    className="w-full"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                        >
+                                            {loading ? (
+                                                <>
+                                                    <LoadingSpinner />
+                                                    <span>Procesando...</span>
+                                                </>
+                                            ) : (
+                                                <span>Generar Flujo</span>
+                                            )}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                {/* Results */}
+                                <div className="bg-white rounded-lg shadow-lg p-6">
+                                    <h2 className="text-xl font-semibold mb-4">Resultado</h2>
+                                    
+                                    {error && (
+                                        <div className="bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-lg mb-4">
+                                            {error}
+                                        </div>
+                                    )}
+
+                                    {result && (
+                                        <div className="space-y-4">
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <h3 className="font-medium text-gray-700 mb-2">Modelo Seleccionado</h3>
+                                                <p className="text-2xl font-semibold text-purple-600">{result.model || result.flow?.selectedModel}</p>
+                                            </div>
+
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <h3 className="font-medium text-gray-700 mb-2">Análisis</h3>
+                                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                                    <div>Tipo: {result.analysis?.type}</div>
+                                                    <div>Complejidad: {result.analysis?.complexity}</div>
+                                                    <div>Requiere código: {result.analysis?.requiresCode ? 'Sí' : 'No'}</div>
+                                                    <div>Estado: {result.status}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gray-50 rounded-lg p-4">
+                                                <h3 className="font-medium text-gray-700 mb-2">Flujo Generado</h3>
+                                                <pre className="text-sm text-gray-600 whitespace-pre-wrap">
+                                                    {JSON.stringify(result.flow, null, 2)}
+                                                </pre>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Capabilities Tab */}
+                        {activeTab === 'capabilities' && (
+                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                <h2 className="text-xl font-semibold mb-4">Capacidades Disponibles</h2>
+                                {loading ? (
+                                    <div className="flex justify-center py-8">
+                                        <LoadingSpinner />
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {capabilities.map((cap, index) => (
+                                            <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                                <h3 className="font-medium text-gray-800 mb-1">{cap.name}</h3>
+                                                <p className="text-sm text-gray-600 mb-2">{cap.description}</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {cap.tags?.map((tag, i) => (
+                                                        <span key={i} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Leaderboard Tab */}
+                        {activeTab === 'leaderboard' && (
+                            <div className="bg-white rounded-lg shadow-lg p-6">
+                                <h2 className="text-xl font-semibold mb-4">Ranking de Modelos</h2>
+                                {loading ? (
+                                    <div className="flex justify-center py-8">
+                                        <LoadingSpinner />
+                                    </div>
+                                ) : leaderboard ? (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="border-b">
+                                                    <th className="text-left py-3 px-4">Modelo</th>
+                                                    <th className="text-left py-3 px-4">Calidad</th>
+                                                    <th className="text-left py-3 px-4">Costo</th>
+                                                    <th className="text-left py-3 px-4">Latencia</th>
+                                                    <th className="text-left py-3 px-4">Puntuación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {leaderboard.rankings?.map((model, index) => (
+                                                    <tr key={index} className="border-b hover:bg-gray-50">
+                                                        <td className="py-3 px-4 font-medium">{model.name}</td>
+                                                        <td className="py-3 px-4">{(model.metrics?.quality * 100).toFixed(1)}%</td>
+                                                        <td className="py-3 px-4">${model.metrics?.avgCost?.toFixed(4)}</td>
+                                                        <td className="py-3 px-4">{model.metrics?.avgLatency?.toFixed(0)}ms</td>
+                                                        <td className="py-3 px-4">
+                                                            <span className="font-semibold text-purple-600">
+                                                                {model.score?.toFixed(2)}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <p className="text-gray-500">No hay datos disponibles</p>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>

@@ -1,29 +1,16 @@
-# Production orchestrator with pre-built components
 FROM node:20-slim
 
 WORKDIR /app
 
-# Copy the entire project (assuming it's already built locally)
-COPY . .
+# Install dependencies
+RUN npm install express uuid @google-cloud/secret-manager @google-cloud/error-reporting @google-cloud/tasks
 
-# Install only production dependencies
-RUN npm install -g pnpm@9.15.0 && \
-    pnpm install --prod --frozen-lockfile
+# Copy application
+COPY deploy-orchestrator-production.js .
 
-# Create necessary directories
-RUN mkdir -p .capability-cache evaluations logs
+# Run as non-root user
+USER node
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV USE_LITELLM_V2=false
+EXPOSE 8080
 
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:3000/api/v1/orchestrate/health || exit 1
-
-# Run the production orchestrator
 CMD ["node", "deploy-orchestrator-production.js"]

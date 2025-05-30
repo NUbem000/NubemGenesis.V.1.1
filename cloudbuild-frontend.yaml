@@ -1,62 +1,35 @@
 steps:
-  # Build the Docker image with frontend
+  # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args: 
-      - 'build'
-      - '-t'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:frontend'
-      - '-t'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:latest'
-      - '-f'
-      - 'Dockerfile.frontend-build'
-      - '.'
-    timeout: 1800s
-
-  # Push the Docker image to Artifact Registry
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-frontend:$COMMIT_SHA', '-f', 'Dockerfile.frontend', '.']
+  
+  # Push to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - '--all-tags'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis'
-
+    args: ['push', 'gcr.io/$PROJECT_ID/nubemgenesis-frontend:$COMMIT_SHA']
+  
   # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       - 'run'
       - 'deploy'
-      - 'nubemgenesis'
+      - 'nubemgenesis-frontend'
       - '--image'
-      - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:frontend'
+      - 'gcr.io/$PROJECT_ID/nubemgenesis-frontend:$COMMIT_SHA'
       - '--region'
       - 'us-central1'
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--port'
-      - '3000'
       - '--memory'
-      - '4Gi'
+      - '256Mi'
       - '--cpu'
-      - '2'
-      - '--min-instances'
       - '1'
       - '--max-instances'
       - '10'
-      - '--timeout'
-      - '300'
-      - '--set-env-vars'
-      - 'NODE_ENV=production'
-      - '--set-secrets'
-      - 'DATABASE_PASSWORD=nubemgenesis-db-password:latest,PASSPHRASE=nubemgenesis-passphrase:latest,JWT_SECRET=nubemgenesis-jwt-secret:latest'
 
 images:
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:frontend'
-  - 'us-central1-docker.pkg.dev/${PROJECT_ID}/nubemgenesis/nubemgenesis:latest'
-
-timeout: 2400s
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-frontend:$COMMIT_SHA'
 
 options:
-  machineType: 'E2_HIGHCPU_32'
-  diskSizeGb: 100
   logging: CLOUD_LOGGING_ONLY
