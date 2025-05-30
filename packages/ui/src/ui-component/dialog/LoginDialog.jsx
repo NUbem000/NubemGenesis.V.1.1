@@ -2,11 +2,11 @@ import { createPortal } from 'react-dom'
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 
-import { Dialog, DialogActions, DialogContent, Typography, DialogTitle } from '@mui/material'
+import { Dialog, DialogActions, DialogContent, Typography, DialogTitle, Box } from '@mui/material'
 import { StyledButton } from '@/ui-component/button/StyledButton'
 import { Input } from '@/ui-component/input/Input'
 
-const LoginDialog = ({ show, dialogProps, onConfirm }) => {
+const LoginDialog = ({ show, dialogProps, onConfirm, onShowRegister }) => {
     const portalElement = document.getElementById('portal')
     const usernameInput = {
         label: 'Username',
@@ -51,9 +51,26 @@ const LoginDialog = ({ show, dialogProps, onConfirm }) => {
                 <Input inputParam={passwordInput} onChange={(newValue) => setPasswordVal(newValue)} value={passwordVal} />
             </DialogContent>
             <DialogActions>
-                <StyledButton variant='contained' onClick={() => onConfirm(usernameVal, passwordVal)}>
-                    {dialogProps.confirmButtonName}
-                </StyledButton>
+                <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 1 }}>
+                    <StyledButton variant='contained' onClick={() => onConfirm(usernameVal, passwordVal)}>
+                        {dialogProps.confirmButtonName}
+                    </StyledButton>
+                    {onShowRegister && (
+                        <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                                ¿No tienes cuenta?{' '}
+                                <StyledButton 
+                                    variant="text" 
+                                    size="small"
+                                    onClick={onShowRegister}
+                                    sx={{ textTransform: 'none', p: 0, minWidth: 'auto' }}
+                                >
+                                    Crear cuenta
+                                </StyledButton>
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
             </DialogActions>
         </Dialog>
     ) : null
@@ -64,7 +81,8 @@ const LoginDialog = ({ show, dialogProps, onConfirm }) => {
 LoginDialog.propTypes = {
     show: PropTypes.bool,
     dialogProps: PropTypes.object,
-    onConfirm: PropTypes.func
+    onConfirm: PropTypes.func,
+    onShowRegister: PropTypes.func
 }
 
 export default LoginDialog

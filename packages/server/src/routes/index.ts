@@ -57,6 +57,7 @@ import executionsRouter from './executions'
 import validationRouter from './validation'
 import agentflowv2GeneratorRouter from './agentflowv2-generator'
 import orchestratorRouter from './orchestrator'
+import authRouter from './auth'
 
 const router = express.Router()
 
@@ -69,6 +70,7 @@ router.use('/verify', verifyRouter)
 router.use('/version', versionRouter)
 
 // === AUTHENTICATION ENDPOINTS (Strict rate limiting) ===
+router.use('/auth', authRouter)
 router.use('/apikey', authRateLimiter, apikeyRouter)
 
 // === FILE UPLOAD ENDPOINTS (Upload rate limiting) ===

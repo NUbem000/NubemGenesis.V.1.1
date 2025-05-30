@@ -3,7 +3,7 @@ import { FullPageChat } from 'flowise-embed-react'
 import { useNavigate } from 'react-router-dom'
 
 // Project import
-import LoginDialog from '@/ui-component/dialog/LoginDialog'
+import AuthDialog from '@/ui-component/dialog/AuthDialog'
 
 // API
 import chatflowsApi from '@/api/chatflows'
@@ -29,18 +29,16 @@ const ChatbotFull = () => {
 
     const [chatflow, setChatflow] = useState(null)
     const [chatbotTheme, setChatbotTheme] = useState({})
-    const [loginDialogOpen, setLoginDialogOpen] = useState(false)
-    const [loginDialogProps, setLoginDialogProps] = useState({})
+    const [authDialogOpen, setAuthDialogOpen] = useState(false)
     const [isLoading, setLoading] = useState(true)
     const [chatbotOverrideConfig, setChatbotOverrideConfig] = useState({})
 
     const getSpecificChatflowFromPublicApi = useApi(chatflowsApi.getSpecificChatflowFromPublicEndpoint)
     const getSpecificChatflowApi = useApi(chatflowsApi.getSpecificChatflow)
 
-    const onLoginClick = (username, password) => {
-        localStorage.setItem('username', username)
-        localStorage.setItem('password', password)
-        navigate(0)
+    const onAuthSuccess = () => {
+        setAuthDialogOpen(false)
+        // La página se recargará automáticamente desde AuthDialog
     }
 
     useEffect(() => {
@@ -55,11 +53,7 @@ const ChatbotFull = () => {
                 if (localStorage.getItem('username') && localStorage.getItem('password')) {
                     getSpecificChatflowApi.request(chatflowId)
                 } else {
-                    setLoginDialogProps({
-                        title: 'Login',
-                        confirmButtonName: 'Login'
-                    })
-                    setLoginDialogOpen(true)
+                    setAuthDialogOpen(true)
                 }
             }
         }
@@ -69,11 +63,7 @@ const ChatbotFull = () => {
     useEffect(() => {
         if (getSpecificChatflowApi.error) {
             if (getSpecificChatflowApi.error?.response?.status === 401) {
-                setLoginDialogProps({
-                    title: 'Login',
-                    confirmButtonName: 'Login'
-                })
-                setLoginDialogOpen(true)
+                setAuthDialogOpen(true)
             }
         }
     }, [getSpecificChatflowApi.error])
@@ -151,7 +141,11 @@ const ChatbotFull = () => {
                             theme={{ chatWindow: chatbotTheme }}
                         />
                     )}
-                    <LoginDialog show={loginDialogOpen} dialogProps={loginDialogProps} onConfirm={onLoginClick} />
+                    <AuthDialog 
+                        show={authDialogOpen} 
+                        onClose={() => setAuthDialogOpen(false)}
+                        onSuccess={onAuthSuccess}
+                    />
                 </>
             ) : null}
         </>

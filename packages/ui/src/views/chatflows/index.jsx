@@ -10,7 +10,7 @@ import MainCard from '@/ui-component/cards/MainCard'
 import ItemCard from '@/ui-component/cards/ItemCard'
 import { gridSpacing } from '@/store/constant'
 import WorkflowEmptySVG from '@/assets/images/workflow_empty.svg'
-import LoginDialog from '@/ui-component/dialog/LoginDialog'
+import AuthDialog from '@/ui-component/dialog/AuthDialog'
 import ConfirmDialog from '@/ui-component/dialog/ConfirmDialog'
 import { FlowListTable } from '@/ui-component/table/FlowListTable'
 import { StyledButton } from '@/ui-component/button/StyledButton'
@@ -39,8 +39,7 @@ const Chatflows = () => {
     const [error, setError] = useState(null)
     const [images, setImages] = useState({})
     const [search, setSearch] = useState('')
-    const [loginDialogOpen, setLoginDialogOpen] = useState(false)
-    const [loginDialogProps, setLoginDialogProps] = useState({})
+    const [authDialogOpen, setAuthDialogOpen] = useState(false)
 
     const getAllChatflowsApi = useApi(chatflowsApi.getAllChatflows)
     const [view, setView] = useState(localStorage.getItem('flowDisplayStyle') || 'card')
@@ -63,10 +62,9 @@ const Chatflows = () => {
         )
     }
 
-    const onLoginClick = (username, password) => {
-        localStorage.setItem('username', username)
-        localStorage.setItem('password', password)
-        navigate(0)
+    const onAuthSuccess = () => {
+        setAuthDialogOpen(false)
+        // La página se recargará automáticamente desde AuthDialog
     }
 
     const addNew = () => {
@@ -86,11 +84,7 @@ const Chatflows = () => {
     useEffect(() => {
         if (getAllChatflowsApi.error) {
             if (getAllChatflowsApi.error?.response?.status === 401) {
-                setLoginDialogProps({
-                    title: 'Login',
-                    confirmButtonName: 'Login'
-                })
-                setLoginDialogOpen(true)
+                setAuthDialogOpen(true)
             } else {
                 setError(getAllChatflowsApi.error)
             }
@@ -215,7 +209,11 @@ const Chatflows = () => {
                 </Stack>
             )}
 
-            <LoginDialog show={loginDialogOpen} dialogProps={loginDialogProps} onConfirm={onLoginClick} />
+            <AuthDialog 
+                show={authDialogOpen} 
+                onClose={() => setAuthDialogOpen(false)}
+                onSuccess={onAuthSuccess}
+            />
             <ConfirmDialog />
         </MainCard>
     )
