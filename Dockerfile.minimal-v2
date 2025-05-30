@@ -1,0 +1,37 @@
+# Use the official Node.js image
+FROM node:18-slim
+
+# Install necessary tools
+RUN apt-get update && apt-get install -y \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Clone the repository with V2 code
+RUN git clone https://github.com/NUbem000/NubemGenesis.V.1.1.git . || true
+
+# Install pnpm
+RUN npm install -g pnpm@8.6.10
+
+# Install dependencies (ignore optional deps that fail)
+RUN pnpm install --no-optional || npm install --no-optional || true
+
+# Try to build (may fail but we have dist from git)
+RUN pnpm build || npm run build || true
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV USE_ORCHESTRATOR_V2=true
+ENV USE_LITELLM_V2=true
+
+# Expose port
+EXPOSE 3000
+
+# Start command - try multiple options
+CMD ["sh", "-c", "node packages/server/dist/index.js || npm start || pnpm start || node index.js"]

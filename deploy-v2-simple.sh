@@ -8,7 +8,7 @@ set -e
 echo "🚀 Iniciando deployment de NubemGenesis Orchestrator V2 con RAG..."
 
 # Variables
-PROJECT_ID="nubemgenesis-production"
+PROJECT_ID="nubemgenesis-v1-1"
 REGION="us-central1"
 SERVICE_NAME="nubemgenesis-orchestrator-v2"
 
