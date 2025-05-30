@@ -1,0 +1,22 @@
+runtime: nodejs18
+env: standard
+
+instance_class: F4
+
+env_variables:
+  NODE_ENV: "production"
+  USE_ORCHESTRATOR_V2: "true"
+  USE_LITELLM_V2: "true"
+  FLOWISE_USERNAME: "admin"
+  FLOWISE_PASSWORD: "nubemgenesis2024"
+
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  target_cpu_utilization: 0.65
+  target_throughput_utilization: 0.7
+
+resources:
+  cpu: 2
+  memory_gb: 2.0
+  disk_size_gb: 10

@@ -22,6 +22,12 @@ const getAllowChatflowUploads = (id) => client.get(`/chatflows-uploads/${id}`)
 
 const generateAgentflow = (body) => client.post(`/agentflowv2-generator/generate`, body)
 
+// V2 Orchestration endpoints
+const analyzeAgentRequest = (body) => client.post(`/v2/orchestrate/analyze`, body)
+const generateAgentConfig = (body) => client.post(`/v2/orchestrate/generate`, body)
+const deployAgent = (id, body) => client.post(`/v2/orchestrate/deploy/${id}`, body)
+const getAgentSuggestions = (query) => client.get(`/v2/orchestrate/suggestions?query=${encodeURIComponent(query)}`)
+
 export default {
     getAllChatflows,
     getAllAgentflows,
@@ -33,5 +39,9 @@ export default {
     deleteChatflow,
     getIsChatflowStreaming,
     getAllowChatflowUploads,
-    generateAgentflow
+    generateAgentflow,
+    analyzeAgentRequest,
+    generateAgentConfig,
+    deployAgent,
+    getAgentSuggestions
 }

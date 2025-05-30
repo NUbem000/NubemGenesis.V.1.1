@@ -4,7 +4,7 @@ steps:
     args:
       - 'build'
       - '-f'
-      - 'Dockerfile.production'
+      - 'Dockerfile.nubemgenesis-final'
       - '-t'
       - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:$BUILD_ID'
       - '-t'

@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NubemGenesis V2 - Demo de Creación de Agentes IA</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        
+        .wizard-container {
+            background: #111111;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            padding: 0 2rem;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            color: #666;
+            font-size: 0.9rem;
+            position: relative;
+            flex: 1;
+        }
+        
+        .step.active {
+            color: #fff;
+        }
+        
+        .step.completed {
+            color: #667eea;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.5rem;
+            background: #111;
+            font-weight: 600;
+        }
+        
+        .step.active .step-number {
+            border-color: #667eea;
+            background: #667eea;
+            color: #fff;
+        }
+        
+        .step.completed .step-number {
+            border-color: #667eea;
+            background: #667eea;
+            color: #fff;
+        }
+        
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 32px;
+            right: -50%;
+            height: 2px;
+            background: #333;
+            z-index: -1;
+        }
+        
+        .step.completed:not(:last-child)::after {
+            background: #667eea;
+        }
+        
+        .step-content {
+            min-height: 400px;
+        }
+        
+        .form-group {
+            margin-bottom: 2rem;
+        }
+        
+        .label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #ccc;
+            font-weight: 500;
+        }
+        
+        .textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .suggestions {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .suggestion-title {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .suggestion-item {
+            padding: 1rem;
+            background: #222;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .suggestion-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .suggestion-item h4 {
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        
+        .suggestion-item p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background: #2a2a2a;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        
+        .question-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .question-card h3 {
+            margin-bottom: 1rem;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            border-color: #667eea;
+            background: #252525;
+        }
+        
+        .option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .option input[type="checkbox"],
+        .option input[type="radio"] {
+            margin-right: 0.75rem;
+        }
+        
+        .option-label {
+            flex: 1;
+            color: #fff;
+        }
+        
+        .popular-badge {
+            padding: 0.25rem 0.5rem;
+            background: #667eea;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .flow-preview {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .flow-preview h3 {
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+        
+        .flow-nodes {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .flow-node {
+            padding: 0.75rem 1.5rem;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            position: relative;
+        }
+        
+        .flow-node::after {
+            content: '→';
+            position: absolute;
+            right: -1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+        
+        .flow-node:last-child::after {
+            display: none;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+        }
+        
+        .button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .button-secondary {
+            background: #222;
+            color: #fff;
+            border: 1px solid #333;
+        }
+        
+        .button-secondary:hover {
+            background: #333;
+        }
+        
+        .button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
+        .button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: #22c55e;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">NubemGenesis V2</h1>
+            <p class="subtitle">Crea agentes de IA con lenguaje natural</p>
+        </header>
+        
+        <div id="root"></div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Configuración de API
+        const API_URL = 'https://nubemgenesis-v2-demo-394068846550.us-central1.run.app';
+        
+        function CreateFlowWizard() {
+            const [step, setStep] = useState(0);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            
+            // Form data
+            const [query, setQuery] = useState('');
+            const [clarifications, setClarifications] = useState({});
+            const [questions, setQuestions] = useState([]);
+            const [generatedFlow, setGeneratedFlow] = useState(null);
+            const [flowName, setFlowName] = useState('');
+            const [suggestions, setSuggestions] = useState([]);
+            
+            const steps = ['Describe tu agente', 'Clarificar requisitos', 'Revisar y crear'];
+            
+            // Fetch suggestions
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    if (query.length > 10) {
+                        fetchSuggestions();
+                    }
+                }, 500);
+                return () => clearTimeout(timer);
+            }, [query]);
+            
+            const fetchSuggestions = async () => {
+                try {
+                    const response = await fetch(`${API_URL}/api/v2/orchestrate/suggestions?query=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    setSuggestions(data.suggestions || []);
+                } catch (err) {
+                    console.error('Error fetching suggestions:', err);
+                }
+            };
+            
+            const handleQuerySubmit = async () => {
+                if (!query.trim()) {
+                    setError('Por favor describe qué quieres que haga tu agente');
+                    return;
+                }
+                
+                setLoading(true);
+                setError('');
+                
+                try {
+                    const response = await fetch(`${API_URL}/api/v2/orchestrate/orchestrate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.needsClarification) {
+                        setQuestions(data.questions || []);
+                        setStep(1);
+                    } else {
+                        setGeneratedFlow(data.flow);
+                        setFlowName(data.explanation?.substring(0, 50) + '...');
+                        setStep(2);
+                    }
+                } catch (err) {
+                    setError('Error al procesar la solicitud: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handleClarificationSubmit = async () => {
+                setLoading(true);
+                setError('');
+                
+                try {
+                    const clarificationAnswers = Object.entries(clarifications).map(([questionId, values]) => ({
+                        questionId,
+                        values: Array.isArray(values) ? values : [values]
+                    }));
+                    
+                    const response = await fetch(`${API_URL}/api/v2/orchestrate/orchestrate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query, clarifications: clarificationAnswers })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.flow) {
+                        setGeneratedFlow(data.flow);
+                        setFlowName(data.explanation?.substring(0, 50) + '...');
+                        setStep(2);
+                    }
+                } catch (err) {
+                    setError('Error al generar el flujo: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handleCreateFlow = async () => {
+                setLoading(true);
+                
+                // Simular creación de flujo
+                setTimeout(() => {
+                    alert(`¡Flujo "${flowName}" creado exitosamente!\n\nEn un entorno real, esto se guardaría en la base de datos y estaría disponible en el dashboard principal.`);
+                    setLoading(false);
+                    
+                    // Reset wizard
+                    setStep(0);
+                    setQuery('');
+                    setClarifications({});
+                    setQuestions([]);
+                    setGeneratedFlow(null);
+                    setFlowName('');
+                }, 2000);
+            };
+            
+            const renderStep1 = () => (
+                <div className="step-content">
+                    <h2 style={{ marginBottom: '1rem' }}>Describe qué quieres que haga tu agente IA</h2>
+                    <p style={{ color: '#888', marginBottom: '2rem' }}>
+                        Sé específico sobre las tareas, fuentes de datos y resultados esperados. 
+                        Nuestra IA entenderá y creará el flujo perfecto para ti.
+                    </p>
+                    
+                    <div className="form-group">
+                        <label className="label">Descripción del agente</label>
+                        <textarea
+                            className="textarea"
+                            placeholder="Ejemplo: Necesito un agente que pueda leer documentos PDF, extraer información clave y responder preguntas sobre el contenido"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
+                    </div>
+                    
+                    {suggestions.length > 0 && (
+                        <div className="suggestions">
+                            <p className="suggestion-title">
+                                💡 Casos de uso similares:
+                            </p>
+                            {suggestions.map((suggestion, index) => (
+                                <div 
+                                    key={index} 
+                                    className="suggestion-item"
+                                    onClick={() => setQuery(suggestion.query)}
+                                >
+                                    <h4>{suggestion.title}</h4>
+                                    <p>{suggestion.description}</p>
+                                    {suggestion.tags && (
+                                        <div className="tags">
+                                            {suggestion.tags.map((tag, i) => (
+                                                <span key={i} className="tag">{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    {error && <div className="error-message">{error}</div>}
+                    
+                    <div className="button-group">
+                        <button className="button button-secondary" disabled>
+                            Cancelar
+                        </button>
+                        <button 
+                            className="button button-primary"
+                            onClick={handleQuerySubmit}
+                            disabled={!query.trim() || loading}
+                        >
+                            {loading ? <span className="loading"></span> : 'Continuar →'}
+                        </button>
+                    </div>
+                </div>
+            );
+            
+            const renderStep2 = () => (
+                <div className="step-content">
+                    <h2 style={{ marginBottom: '1rem' }}>Vamos a clarificar algunos detalles</h2>
+                    <p style={{ color: '#888', marginBottom: '2rem' }}>
+                        Para crear el agente perfecto, necesitamos algunos detalles adicionales.
+                    </p>
+                    
+                    {questions.map((question) => (
+                        <div key={question.id} className="question-card">
+                            <h3>
+                                {question.question}
+                                {question.required && <span style={{ color: '#ef4444' }}> *</span>}
+                            </h3>
+                            
+                            <div className="options">
+                                {question.multiSelect ? (
+                                    // Checkboxes para multiselección
+                                    question.options.map((option) => (
+                                        <label key={option.value} className={`option ${clarifications[question.id]?.includes(option.value) ? 'selected' : ''}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={clarifications[question.id]?.includes(option.value) || false}
+                                                onChange={(e) => {
+                                                    const current = clarifications[question.id] || [];
+                                                    if (e.target.checked) {
+                                                        setClarifications({
+                                                            ...clarifications,
+                                                            [question.id]: [...current, option.value]
+                                                        });
+                                                    } else {
+                                                        setClarifications({
+                                                            ...clarifications,
+                                                            [question.id]: current.filter(v => v !== option.value)
+                                                        });
+                                                    }
+                                                }}
+                                            />
+                                            <span className="option-label">{option.label}</span>
+                                            {option.popular && <span className="popular-badge">Popular</span>}
+                                        </label>
+                                    ))
+                                ) : (
+                                    // Radio buttons para selección única
+                                    question.options.map((option) => (
+                                        <label key={option.value} className={`option ${clarifications[question.id] === option.value ? 'selected' : ''}`}>
+                                            <input
+                                                type="radio"
+                                                name={question.id}
+                                                checked={clarifications[question.id] === option.value}
+                                                onChange={() => setClarifications({
+                                                    ...clarifications,
+                                                    [question.id]: option.value
+                                                })}
+                                            />
+                                            <span className="option-label">{option.label}</span>
+                                            {option.popular && <span className="popular-badge">Popular</span>}
+                                        </label>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                    
+                    {error && <div className="error-message">{error}</div>}
+                    
+                    <div className="button-group">
+                        <button 
+                            className="button button-secondary"
+                            onClick={() => setStep(0)}
+                        >
+                            ← Atrás
+                        </button>
+                        <button 
+                            className="button button-primary"
+                            onClick={handleClarificationSubmit}
+                            disabled={loading}
+                        >
+                            {loading ? <span className="loading"></span> : 'Generar Flujo ✨'}
+                        </button>
+                    </div>
+                </div>
+            );
+            
+            const renderStep3 = () => (
+                <div className="step-content">
+                    <div className="success-message">
+                        ✅ ¡Tu flujo de agente IA ha sido generado exitosamente!
+                    </div>
+                    
+                    <h2 style={{ marginBottom: '1rem' }}>Revisa tu flujo generado</h2>
+                    
+                    <div className="form-group">
+                        <label className="label">Nombre del flujo</label>
+                        <input
+                            type="text"
+                            className="textarea"
+                            style={{ minHeight: '50px' }}
+                            value={flowName}
+                            onChange={(e) => setFlowName(e.target.value)}
+                        />
+                    </div>
+                    
+                    <div className="flow-preview">
+                        <h3>Componentes del flujo:</h3>
+                        <p style={{ color: '#888', marginBottom: '1rem' }}>
+                            {generatedFlow?.nodes?.length || 0} componentes configurados
+                        </p>
+                        <div className="flow-nodes">
+                            {generatedFlow?.nodes?.map((node, i) => (
+                                <div key={i} className="flow-node">
+                                    {node.data?.label || node.type}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    <div style={{ background: '#1a1a1a', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                        <p style={{ color: '#888' }}>
+                            💡 Puedes personalizar este flujo después de crearlo usando nuestro editor visual.
+                        </p>
+                    </div>
+                    
+                    <div className="button-group">
+                        <button 
+                            className="button button-secondary"
+                            onClick={() => {
+                                setStep(0);
+                                setQuery('');
+                                setClarifications({});
+                                setGeneratedFlow(null);
+                            }}
+                        >
+                            Crear otro flujo
+                        </button>
+                        <button 
+                            className="button button-primary"
+                            onClick={handleCreateFlow}
+                            disabled={loading}
+                        >
+                            {loading ? <span className="loading"></span> : 'Crear Flujo ✓'}
+                        </button>
+                    </div>
+                </div>
+            );
+            
+            return (
+                <div className="wizard-container">
+                    <div className="steps">
+                        {steps.map((stepName, index) => (
+                            <div 
+                                key={index} 
+                                className={`step ${index === step ? 'active' : ''} ${index < step ? 'completed' : ''}`}
+                            >
+                                <div className="step-number">{index + 1}</div>
+                                <span>{stepName}</span>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {step === 0 && renderStep1()}
+                    {step === 1 && renderStep2()}
+                    {step === 2 && renderStep3()}
+                </div>
+            );
+        }
+        
+        // Render the app
+        ReactDOM.render(<CreateFlowWizard />, document.getElementById('root'));
+    </script>
+</body>
+</html>

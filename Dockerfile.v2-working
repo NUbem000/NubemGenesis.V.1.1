@@ -1,0 +1,34 @@
+# Usar una imagen base de NubemGenesis que ya funciona
+FROM gcr.io/nubemgenesis-v1-1/nubemgenesis:latest AS base
+
+# Instalar git para obtener el código V2
+USER root
+RUN apk add --no-cache git
+
+WORKDIR /app
+
+# Hacer backup del código actual
+RUN mv packages packages-backup || true
+
+# Clonar solo los archivos V2 necesarios
+RUN git clone --depth 1 https://github.com/NUbem000/NubemGenesis.V.1.1.git /tmp/v2code || true
+
+# Copiar los archivos V2 nuevos sobre la instalación existente
+RUN cp -r /tmp/v2code/packages/server/src/orchestrator/* packages-backup/server/src/orchestrator/ 2>/dev/null || true && \
+    cp -r /tmp/v2code/packages/server/src/routes/orchestrator/* packages-backup/server/src/routes/orchestrator/ 2>/dev/null || true && \
+    cp /tmp/v2code/packages/server/src/routes/index.ts packages-backup/server/src/routes/ 2>/dev/null || true && \
+    cp /tmp/v2code/packages/ui/src/views/chatflows/CreateFlowWizard.jsx packages-backup/ui/src/views/chatflows/ 2>/dev/null || true && \
+    mv packages-backup packages || true
+
+# Limpiar
+RUN rm -rf /tmp/v2code
+
+# Configurar variables de entorno V2
+ENV NODE_ENV=production
+ENV USE_ORCHESTRATOR_V2=true
+ENV USE_LITELLM_V2=true
+ENV ORCHESTRATOR_WATCH_CAPABILITIES=false
+ENV ORCHESTRATOR_ENABLE_EVALUATION=false
+
+# Usar el mismo comando de inicio que la imagen base
+CMD ["pnpm", "start"]

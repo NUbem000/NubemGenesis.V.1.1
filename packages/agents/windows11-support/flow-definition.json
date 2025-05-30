@@ -1,0 +1,223 @@
+{
+  "id": "windows11-support-flow",
+  "name": "Windows 11 Technical Support Flow",
+  "version": "2.0.0",
+  "type": "AGENTFLOW",
+  "nodes": [
+    {
+      "id": "start-node",
+      "type": "start",
+      "position": { "x": 100, "y": 100 },
+      "data": {
+        "label": "User Input",
+        "description": "Receives user's Windows 11 issue description",
+        "inputs": {
+          "text": true,
+          "image": true,
+          "errorCode": true
+        }
+      }
+    },
+    {
+      "id": "chat-model",
+      "type": "chatOpenAI",
+      "position": { "x": 300, "y": 100 },
+      "data": {
+        "label": "GPT-4 Chat Model",
+        "modelName": "gpt-4",
+        "temperature": 0.3,
+        "maxTokens": 2000,
+        "systemMessage": "You are a Windows 11 technical support expert. Analyze issues systematically and provide clear, step-by-step solutions. Always prioritize user data safety."
+      }
+    },
+    {
+      "id": "memory-node",
+      "type": "bufferMemory",
+      "position": { "x": 500, "y": 100 },
+      "data": {
+        "label": "Conversation Memory",
+        "sessionId": "{{sessionId}}",
+        "memoryKey": "chat_history",
+        "returnMessages": true,
+        "maxMessages": 50
+      }
+    },
+    {
+      "id": "issue-classifier",
+      "type": "customFunction",
+      "position": { "x": 300, "y": 250 },
+      "data": {
+        "label": "Issue Classifier",
+        "function": "classifyWindows11Issue",
+        "description": "Classifies the Windows 11 issue into predefined categories",
+        "outputs": ["category", "severity", "keywords"]
+      }
+    },
+    {
+      "id": "knowledge-retriever",
+      "type": "retriever",
+      "position": { "x": 500, "y": 250 },
+      "data": {
+        "label": "Knowledge Base Retriever",
+        "vectorStore": "windows11-kb",
+        "topK": 5,
+        "scoreThreshold": 0.7
+      }
+    },
+    {
+      "id": "diagnostic-agent",
+      "type": "reactAgent",
+      "position": { "x": 400, "y": 400 },
+      "data": {
+        "label": "Diagnostic Agent",
+        "agentName": "Windows 11 Diagnostics",
+        "maxIterations": 5,
+        "tools": [
+          "windows-diagnostics",
+          "powershell-executor",
+          "registry-analyzer",
+          "event-viewer",
+          "driver-checker",
+          "network-diagnostics"
+        ]
+      }
+    },
+    {
+      "id": "script-generator",
+      "type": "customTool",
+      "position": { "x": 600, "y": 400 },
+      "data": {
+        "label": "PowerShell Script Generator",
+        "toolName": "generatePowerShellScript",
+        "description": "Generates safe PowerShell scripts for issue resolution",
+        "validation": true,
+        "sandbox": true
+      }
+    },
+    {
+      "id": "image-analyzer",
+      "type": "imageAnalyzer",
+      "position": { "x": 300, "y": 550 },
+      "data": {
+        "label": "Screenshot Analyzer",
+        "model": "gpt-4-vision-preview",
+        "description": "Analyzes error screenshots and system images"
+      }
+    },
+    {
+      "id": "solution-synthesizer",
+      "type": "llm",
+      "position": { "x": 500, "y": 550 },
+      "data": {
+        "label": "Solution Synthesizer",
+        "description": "Combines all findings into a comprehensive solution",
+        "template": "Based on the diagnostics and knowledge base, provide a step-by-step solution"
+      }
+    },
+    {
+      "id": "response-formatter",
+      "type": "customFunction",
+      "position": { "x": 400, "y": 700 },
+      "data": {
+        "label": "Response Formatter",
+        "function": "formatTechnicalResponse",
+        "multilingual": true,
+        "includeScripts": true,
+        "includeWarnings": true
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "start-node",
+      "target": "chat-model",
+      "type": "data"
+    },
+    {
+      "id": "e2",
+      "source": "memory-node",
+      "target": "chat-model",
+      "type": "memory"
+    },
+    {
+      "id": "e3",
+      "source": "start-node",
+      "target": "issue-classifier",
+      "type": "data"
+    },
+    {
+      "id": "e4",
+      "source": "issue-classifier",
+      "target": "knowledge-retriever",
+      "type": "query"
+    },
+    {
+      "id": "e5",
+      "source": "knowledge-retriever",
+      "target": "diagnostic-agent",
+      "type": "context"
+    },
+    {
+      "id": "e6",
+      "source": "chat-model",
+      "target": "diagnostic-agent",
+      "type": "model"
+    },
+    {
+      "id": "e7",
+      "source": "diagnostic-agent",
+      "target": "script-generator",
+      "type": "findings"
+    },
+    {
+      "id": "e8",
+      "source": "start-node",
+      "target": "image-analyzer",
+      "type": "image",
+      "conditional": true
+    },
+    {
+      "id": "e9",
+      "source": "image-analyzer",
+      "target": "solution-synthesizer",
+      "type": "analysis"
+    },
+    {
+      "id": "e10",
+      "source": "diagnostic-agent",
+      "target": "solution-synthesizer",
+      "type": "diagnostics"
+    },
+    {
+      "id": "e11",
+      "source": "script-generator",
+      "target": "solution-synthesizer",
+      "type": "scripts"
+    },
+    {
+      "id": "e12",
+      "source": "solution-synthesizer",
+      "target": "response-formatter",
+      "type": "solution"
+    }
+  ],
+  "configuration": {
+    "errorHandling": {
+      "retryAttempts": 3,
+      "fallbackModel": "gpt-3.5-turbo",
+      "errorLogging": true
+    },
+    "performance": {
+      "cacheEnabled": true,
+      "parallelExecution": true,
+      "timeoutSeconds": 120
+    },
+    "security": {
+      "inputValidation": true,
+      "outputSanitization": true,
+      "scriptSandbox": true,
+      "auditLog": true
+    }
+  }
+}

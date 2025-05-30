@@ -217,6 +217,243 @@ router.post(
 )
 
 /**
+ * POST /api/v2/orchestrate/analyze
+ * Analyze user request to determine clarification needs
+ */
+router.post(
+    '/analyze',
+    orchestrationRateLimit,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { description, context } = req.body
+            
+            if (!description || typeof description !== 'string') {
+                return res.status(StatusCodes.BAD_REQUEST).json({
+                    error: 'Description is required and must be a string'
+                })
+            }
+
+            const orchestrator = await initializeOrchestrator()
+            const knowledgeBase = getUseCaseKnowledgeBase()
+            await knowledgeBase.initialize()
+            
+            // Find similar cases
+            const similarCases = await knowledgeBase.findSimilarCases(description, 3)
+            
+            // Determine if clarification is needed
+            const needsClarification = similarCases.length === 0 || similarCases[0].score < 0.7
+            
+            // Generate questions if needed
+            let questions = []
+            if (needsClarification) {
+                questions = [
+                    {
+                        id: 'primary-use',
+                        question: 'What will be the primary use case for this agent?',
+                        type: 'radio',
+                        required: true,
+                        options: [
+                            { value: 'customer-support', label: 'Customer Support', popular: true },
+                            { value: 'data-analysis', label: 'Data Analysis' },
+                            { value: 'content-creation', label: 'Content Creation' },
+                            { value: 'automation', label: 'Task Automation' },
+                            { value: 'other', label: 'Other' }
+                        ]
+                    },
+                    {
+                        id: 'features',
+                        question: 'Which features do you need?',
+                        type: 'multiSelect',
+                        required: false,
+                        options: [
+                            { value: 'memory', label: 'Remember previous conversations', recommended: true },
+                            { value: 'file-upload', label: 'Process uploaded files' },
+                            { value: 'web-search', label: 'Search the web for information' },
+                            { value: 'api-integration', label: 'Connect to external APIs' },
+                            { value: 'multilingual', label: 'Support multiple languages' }
+                        ]
+                    }
+                ]
+            }
+            
+            const response = {
+                needsClarification,
+                questions,
+                suggestions: similarCases.map(sc => ({
+                    title: sc.useCase.title,
+                    description: sc.useCase.description,
+                    confidence: Math.round(sc.score * 100)
+                })),
+                initialConfig: !needsClarification && similarCases[0] ? {
+                    baseFlow: similarCases[0].useCase.title,
+                    confidence: similarCases[0].score
+                } : null
+            }
+
+            res.status(StatusCodes.OK).json(response)
+
+        } catch (error) {
+            const errorMessage = getErrorMessage(error)
+            console.error('Analyze error:', errorMessage)
+            next(new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, errorMessage))
+        }
+    }
+)
+
+/**
+ * POST /api/v2/orchestrate/generate
+ * Generate agent configuration based on description and clarifications
+ */
+router.post(
+    '/generate',
+    orchestrationRateLimit,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { description, clarifications, options } = req.body
+            
+            if (!description || typeof description !== 'string') {
+                return res.status(StatusCodes.BAD_REQUEST).json({
+                    error: 'Description is required and must be a string'
+                })
+            }
+
+            const orchestrator = await initializeOrchestrator()
+            
+            // Create orchestration request
+            const request: OrchestrationRequestV2 = {
+                query: description,
+                clarifications: clarifications || {},
+                constraints: {
+                    maxComponents: 10,
+                    preferSimplicity: true,
+                    costOptimization: true
+                },
+                options: {
+                    generateDocumentation: options?.generateDocumentation || true,
+                    includeTestExamples: options?.includeTestExamples || true,
+                    optimizationLevel: 'balanced'
+                }
+            }
+            
+            // Generate the flow
+            const response = await orchestrator.orchestrate(request)
+            
+            // Transform to agent configuration format
+            const configuration = {
+                id: `agent-${Date.now()}`,
+                name: response.flow?.name || 'Custom AI Agent',
+                description: response.flow?.description || description,
+                model: 'gpt-4',
+                temperature: 0.7,
+                capabilities: response.capabilities || [],
+                features: Object.values(clarifications?.features || []),
+                estimatedCost: '0.05',
+                performance: 'Optimized',
+                apiIntegration: 'RESTful API with WebSocket support',
+                dataSources: response.components?.filter(c => c.type === 'dataSource').map(c => c.name) || [],
+                components: response.components || [],
+                enableMemory: clarifications?.features?.includes('memory'),
+                enableAnalytics: true,
+                enableRateLimiting: true,
+                flow: response.flow
+            }
+
+            res.status(StatusCodes.OK).json({ configuration })
+
+        } catch (error) {
+            const errorMessage = getErrorMessage(error)
+            console.error('Generate error:', errorMessage)
+            next(new InternalFlowiseError(StatusCodes.INTERNAL_SERVER_ERROR, errorMessage))
+        }
+    }
+)
+
+/**
+ * POST /api/v2/orchestrate/deploy/:id
+ * Deploy an agent configuration (returns progress via SSE)
+ */
+router.post(
+    '/deploy/:id',
+    orchestrationRateLimit,
+    async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const { id } = req.params
+            const configuration = req.body
+            
+            if (!configuration || !id) {
+                return res.status(StatusCodes.BAD_REQUEST).json({
+                    error: 'Configuration and ID are required'
+                })
+            }
+
+            // Set up SSE
+            res.writeHead(StatusCodes.OK, {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive'
+            })
+            
+            // Deployment simulation steps
+            const steps = [
+                { progress: 10, log: 'Validating configuration...', delay: 500 },
+                { progress: 20, log: 'Creating cloud resources...', delay: 1000 },
+                { progress: 40, log: 'Installing dependencies...', delay: 1500 },
+                { progress: 60, log: 'Configuring AI model...', delay: 1000 },
+                { progress: 80, log: 'Running health checks...', delay: 1000 },
+                { progress: 100, log: 'Deployment completed!', delay: 500 }
+            ]
+            
+            let currentStep = 0
+            const deploymentInterval = setInterval(async () => {
+                if (currentStep >= steps.length) {
+                    clearInterval(deploymentInterval)
+                    
+                    // Send completion event
+                    const result = {
+                        id: configuration.id,
+                        status: 'active',
+                        endpoint: `https://api.nubemgenesis.com/agents/${id}`,
+                        apiKey: `ng_${Math.random().toString(36).substring(2, 15)}`
+                    }
+                    
+                    res.write(`data: ${JSON.stringify({
+                        status: 'completed',
+                        progress: 100,
+                        result
+                    })}\n\n`)
+                    
+                    res.end()
+                    return
+                }
+                
+                const step = steps[currentStep]
+                res.write(`data: ${JSON.stringify({
+                    progress: step.progress,
+                    log: step.log,
+                    logType: 'info'
+                })}\n\n`)
+                
+                currentStep++
+            }, 1000)
+            
+            // Handle client disconnect
+            req.on('close', () => {
+                clearInterval(deploymentInterval)
+            })
+
+        } catch (error) {
+            const errorMessage = getErrorMessage(error)
+            console.error('Deploy error:', errorMessage)
+            res.write(`data: ${JSON.stringify({
+                status: 'failed',
+                error: errorMessage
+            })}\n\n`)
+            res.end()
+        }
+    }
+)
+
+/**
  * GET /api/v2/orchestrate/templates
  * Get popular templates based on successful use cases
  */

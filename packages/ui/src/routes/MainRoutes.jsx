@@ -42,6 +42,9 @@ const VectorStoreQuery = Loadable(lazy(() => import('@/views/docstore/VectorStor
 // execution routing
 const Executions = Loadable(lazy(() => import('@/views/agentexecutions')))
 
+// agent creator routing
+const AgentCreator = Loadable(lazy(() => import('@/views/agentcreator')))
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -63,6 +66,10 @@ const MainRoutes = {
         {
             path: '/executions',
             element: <Executions />
+        },
+        {
+            path: '/agent-creator',
+            element: <AgentCreator />
         },
         {
             path: '/marketplaces',

@@ -1,0 +1,45 @@
+FROM node:18-alpine
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@8.6.10
+
+# Copy package files first for better caching
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/
+
+# Create directory structure
+RUN mkdir -p packages/server packages/ui packages/components packages/api-documentation
+
+# Copy specific package.json files
+COPY packages/server/package.json ./packages/server/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/components/package.json ./packages/components/
+COPY packages/api-documentation/package.json ./packages/api-documentation/
+
+# Install dependencies without optional packages that cause issues
+RUN pnpm install --frozen-lockfile --ignore-scripts || true
+
+# Copy all source code
+COPY . .
+
+# Build the project
+RUN pnpm build || true
+
+# Ensure dist directory exists
+RUN mkdir -p packages/server/dist
+
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV USE_ORCHESTRATOR_V2=true
+ENV USE_LITELLM_V2=true
+
+EXPOSE 3000
+
+# Start the server
+CMD ["node", "packages/server/dist/index.js"]

@@ -9,7 +9,8 @@ import {
     IconRobot,
     IconVariable,
     IconFiles,
-    IconListCheck
+    IconListCheck,
+    IconSparkles
 } from '@tabler/icons-react'
 
 // constant
@@ -23,7 +24,8 @@ const icons = {
     IconLock,
     IconRobot,
     IconVariable,
-    IconFiles
+    IconFiles,
+    IconSparkles
 }
 
 // ==============================|| DASHBOARD MENU ITEMS ||============================== //
@@ -33,6 +35,19 @@ const dashboard = {
     title: '',
     type: 'group',
     children: [
+        {
+            id: 'agent-creator',
+            title: 'Agent Creator',
+            type: 'item',
+            url: '/agent-creator',
+            icon: icons.IconSparkles,
+            breadcrumbs: true,
+            chip: {
+                label: 'New',
+                color: 'primary',
+                size: 'small'
+            }
+        },
         {
             id: 'chatflows',
             title: 'Chatflows',
