@@ -1,0 +1,492 @@
+{
+  "timestamp": "2025-05-30T09:26:11.329Z",
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "passRate": "100.0%"
+  },
+  "tests": [
+    {
+      "name": "Health Check",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "status": "healthy",
+          "version": "2.0.0",
+          "timestamp": "2025-05-30T09:26:10.421Z",
+          "features": {
+            "litellmRouting": true,
+            "modelEvaluation": true,
+            "securitySandbox": true,
+            "observability": true,
+            "capabilityWatcher": true,
+            "evaluationScheduler": true
+          },
+          "metrics": {
+            "totalRequests": 0,
+            "totalErrors": 0,
+            "errorRate": 0,
+            "avgLatency": 0,
+            "modelUsage": {}
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Orchestration - Simple Chatbot",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "status": "success",
+          "flow": {
+            "id": "chatbot-1748597170599",
+            "name": "AI Chatbot Flow",
+            "nodes": [
+              {
+                "id": "llm_0",
+                "type": "chatOpenAI",
+                "data": {
+                  "label": "Chat Model"
+                }
+              },
+              {
+                "id": "memory_0",
+                "type": "bufferMemory",
+                "data": {
+                  "label": "Memory"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "id": "e1",
+                "source": "memory_0",
+                "target": "llm_0"
+              }
+            ],
+            "optimizations": [
+              "caching",
+              "parallelization",
+              "model-routing"
+            ],
+            "selectedModel": "gemini-pro"
+          },
+          "analysis": {
+            "type": "chatbot",
+            "complexity": "simple",
+            "requirements": {
+              "maxCost": 0.01,
+              "maxLatency": 2000,
+              "minQuality": 0.7
+            },
+            "requiresCode": false
+          },
+          "model": "gemini-pro",
+          "traceId": "trace_1748597170598_wcll0qknv"
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Orchestration - High Quality RAG",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "status": "success",
+          "flow": {
+            "id": "rag-1748597170733",
+            "name": "RAG System Flow",
+            "nodes": [
+              {
+                "id": "loader_0",
+                "type": "pdfLoader",
+                "data": {
+                  "label": "Document Loader"
+                }
+              },
+              {
+                "id": "splitter_0",
+                "type": "textSplitter",
+                "data": {
+                  "label": "Text Splitter"
+                }
+              },
+              {
+                "id": "embeddings_0",
+                "type": "openAIEmbeddings",
+                "data": {
+                  "label": "Embeddings"
+                }
+              },
+              {
+                "id": "vectorstore_0",
+                "type": "pinecone",
+                "data": {
+                  "label": "Vector Store"
+                }
+              },
+              {
+                "id": "retriever_0",
+                "type": "retriever",
+                "data": {
+                  "label": "Retriever"
+                }
+              },
+              {
+                "id": "llm_0",
+                "type": "chatOpenAI",
+                "data": {
+                  "label": "LLM"
+                }
+              },
+              {
+                "id": "chain_0",
+                "type": "retrievalQAChain",
+                "data": {
+                  "label": "QA Chain"
+                }
+              }
+            ],
+            "edges": [
+              {
+                "id": "e1",
+                "source": "loader_0",
+                "target": "splitter_0"
+              },
+              {
+                "id": "e2",
+                "source": "splitter_0",
+                "target": "vectorstore_0"
+              },
+              {
+                "id": "e3",
+                "source": "embeddings_0",
+                "target": "vectorstore_0"
+              },
+              {
+                "id": "e4",
+                "source": "vectorstore_0",
+                "target": "retriever_0"
+              },
+              {
+                "id": "e5",
+                "source": "retriever_0",
+                "target": "chain_0"
+              },
+              {
+                "id": "e6",
+                "source": "llm_0",
+                "target": "chain_0"
+              }
+            ],
+            "optimizations": [
+              "caching",
+              "parallelization",
+              "model-routing"
+            ],
+            "selectedModel": "claude-3-opus"
+          },
+          "analysis": {
+            "type": "rag",
+            "complexity": "simple",
+            "requirements": {
+              "maxCost": 0.1,
+              "maxLatency": 5000,
+              "minQuality": 0.95
+            },
+            "requiresCode": false
+          },
+          "model": "claude-3-opus",
+          "traceId": "trace_1748597170732_wbx9x7j73"
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Endpoint - Models",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "models": {
+            "gpt-4": {
+              "provider": "openai",
+              "cost": 0.03,
+              "latency": 2000,
+              "quality": 1
+            },
+            "gpt-3.5-turbo": {
+              "provider": "openai",
+              "cost": 0.002,
+              "latency": 1000,
+              "quality": 0.75
+            },
+            "claude-3-opus": {
+              "provider": "anthropic",
+              "cost": 0.015,
+              "latency": 1500,
+              "quality": 0.95
+            },
+            "claude-3-sonnet": {
+              "provider": "anthropic",
+              "cost": 0.003,
+              "latency": 1200,
+              "quality": 0.85
+            },
+            "gemini-pro": {
+              "provider": "google",
+              "cost": 0.001,
+              "latency": 800,
+              "quality": 0.85
+            },
+            "mixtral-8x7b": {
+              "provider": "groq",
+              "cost": 0.0005,
+              "latency": 500,
+              "quality": 0.7
+            }
+          },
+          "health": {
+            "gpt-4": {
+              "healthy": true,
+              "successRate": 0.95
+            },
+            "gpt-3.5-turbo": {
+              "healthy": true,
+              "successRate": 0.95
+            },
+            "claude-3-opus": {
+              "healthy": true,
+              "successRate": 0.95
+            },
+            "claude-3-sonnet": {
+              "healthy": true,
+              "successRate": 0.95
+            },
+            "gemini-pro": {
+              "healthy": true,
+              "successRate": 0.95
+            },
+            "mixtral-8x7b": {
+              "healthy": true,
+              "successRate": 0.95
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Endpoint - Leaderboard",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "leaderboard": [
+            {
+              "model": "gpt-4",
+              "avgAccuracy": 1,
+              "avgLatency": 1059.1770317991736,
+              "evaluations": 1
+            },
+            {
+              "model": "gpt-3.5-turbo",
+              "avgAccuracy": 1,
+              "avgLatency": 722.9774998947443,
+              "evaluations": 1
+            },
+            {
+              "model": "claude-3-opus",
+              "avgAccuracy": 1,
+              "avgLatency": 1391.0610696042027,
+              "evaluations": 1
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Endpoint - Capabilities",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "capabilities": [
+            {
+              "name": "ChatOpenAI",
+              "category": "chatModels",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ChatGoogleGenerativeAI",
+              "category": "chatModels",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ChatAnthropic",
+              "category": "chatModels",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ChatGroq",
+              "category": "chatModels",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "Calculator",
+              "category": "tools",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "WebSearch",
+              "category": "tools",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "WikipediaQuery",
+              "category": "tools",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "SerpAPI",
+              "category": "tools",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "BraveSearch",
+              "category": "tools",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "Pinecone",
+              "category": "vectorStores",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "Qdrant",
+              "category": "vectorStores",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "Chroma",
+              "category": "vectorStores",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "Faiss",
+              "category": "vectorStores",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "SupabaseVectorStore",
+              "category": "vectorStores",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "PDFLoader",
+              "category": "documentLoaders",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "TextLoader",
+              "category": "documentLoaders",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "JSONLoader",
+              "category": "documentLoaders",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "CSVLoader",
+              "category": "documentLoaders",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "WebLoader",
+              "category": "documentLoaders",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "OpenAIEmbeddings",
+              "category": "embeddings",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "HuggingFaceEmbeddings",
+              "category": "embeddings",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "CohereEmbeddings",
+              "category": "embeddings",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ConversationalAgent",
+              "category": "agents",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ReActAgent",
+              "category": "agents",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "FunctionAgent",
+              "category": "agents",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "OpenAIAgent",
+              "category": "agents",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "BufferMemory",
+              "category": "memory",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "ConversationSummaryMemory",
+              "category": "memory",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            },
+            {
+              "name": "VectorStoreMemory",
+              "category": "memory",
+              "lastModified": "2025-05-30T09:26:10.393Z"
+            }
+          ],
+          "total": 29,
+          "lastUpdate": "2025-05-30T09:26:10.393Z"
+        },
+        "status": 200
+      }
+    },
+    {
+      "name": "Endpoint - Metrics",
+      "passed": true,
+      "details": {
+        "success": true,
+        "data": {
+          "totalRequests": 2,
+          "totalErrors": 0,
+          "errorRate": 0,
+          "avgLatency": 1,
+          "modelUsage": {
+            "gemini-pro": 1,
+            "claude-3-opus": 1
+          }
+        },
+        "status": 200
+      }
+    }
+  ]
+}
