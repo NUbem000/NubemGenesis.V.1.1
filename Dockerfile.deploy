@@ -1,0 +1,80 @@
+# Build stage
+FROM node:18-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ cairo-dev pango-dev libjpeg-turbo-dev giflib-dev
+
+# Install pnpm
+RUN npm install -g pnpm@latest
+
+WORKDIR /app
+
+# Copy workspace configuration
+COPY package.json pnpm-workspace.yaml ./
+COPY turbo.json ./
+
+# Copy packages
+COPY packages ./packages
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Build all packages
+RUN pnpm build
+
+# Production stage
+FROM node:18-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache dumb-init cairo pango libjpeg-turbo giflib
+
+# Create app user
+RUN addgroup -g 1001 -S nubem && adduser -S nubem -u 1001
+
+WORKDIR /app
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nubem:nubem /app/packages/server/dist ./packages/server/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/server/bin ./packages/server/bin
+COPY --from=builder --chown=nubem:nubem /app/packages/server/marketplaces ./packages/server/marketplaces
+COPY --from=builder --chown=nubem:nubem /app/packages/server/oauth2.html ./packages/server/oauth2.html
+COPY --from=builder --chown=nubem:nubem /app/packages/server/package.json ./packages/server/
+
+# Copy UI build
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/dist ./packages/ui/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/ui/package.json ./packages/ui/
+
+# Copy components
+COPY --from=builder --chown=nubem:nubem /app/packages/components/dist ./packages/components/dist
+COPY --from=builder --chown=nubem:nubem /app/packages/components/package.json ./packages/components/
+
+# Copy workspace files
+COPY --from=builder --chown=nubem:nubem /app/package.json ./
+COPY --from=builder --chown=nubem:nubem /app/pnpm-workspace.yaml ./
+
+# Install pnpm and production dependencies
+RUN npm install -g pnpm@latest
+WORKDIR /app
+RUN pnpm install --prod --frozen-lockfile
+
+# Set working directory to server
+WORKDIR /app/packages/server
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Switch to non-root user
+USER nubem
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:8080/api/v1/ping', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["node", "dist/index.js"]
+
+EXPOSE 8080
