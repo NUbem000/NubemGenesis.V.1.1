@@ -46,6 +46,7 @@ import { useNavigate } from 'react-router-dom'
 // Components
 import CodeBlock from '@/ui-component/markdown/CodeBlock'
 import CopyToClipboardButton from '@/ui-component/button/CopyToClipboardButton'
+import AgentInteractionGuide from '../components/AgentInteractionGuide'
 
 // Store
 import { enqueueSnackbar as enqueueSnackbarAction } from '@/store/actions'
@@ -256,29 +257,13 @@ console.log(data);`
                 </CardContent>
             </Card>
 
-            {/* Quick Start Guide */}
+            {/* Interaction Guide */}
             <Accordion defaultExpanded>
                 <AccordionSummary expandIcon={<IconChevronDown />}>
-                    <Typography variant="h6">Quick Start Guide</Typography>
+                    <Typography variant="h6">How to Use Your Agent</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Box>
-                        <Tabs value={activeTab} onChange={(e, v) => setActiveTab(v)}>
-                            <Tab icon={<IconTerminal2 />} label="cURL" />
-                            <Tab icon={<IconBrandPython />} label="Python" />
-                            <Tab icon={<IconBrandJavascript />} label="JavaScript" />
-                        </Tabs>
-                        
-                        {activeTab === 0 && (
-                            <QuickStartExample language="bash" code={quickStartExamples.curl} />
-                        )}
-                        {activeTab === 1 && (
-                            <QuickStartExample language="python" code={quickStartExamples.python} />
-                        )}
-                        {activeTab === 2 && (
-                            <QuickStartExample language="javascript" code={quickStartExamples.javascript} />
-                        )}
-                    </Box>
+                    <AgentInteractionGuide agent={agent} showTestInterface={true} />
                 </AccordionDetails>
             </Accordion>
 
