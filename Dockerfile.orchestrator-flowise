@@ -1,0 +1,7 @@
+FROM node:18-alpine
+WORKDIR /app
+COPY deploy-orchestrator-v2-simplified.js .
+RUN npm init -y && npm install express cors dotenv
+ENV PORT=8080
+EXPOSE 8080
+CMD ["node", "deploy-orchestrator-v2-simplified.js"]

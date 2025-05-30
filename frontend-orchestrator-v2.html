@@ -232,77 +232,28 @@
                 }
             };
 
-            const [exportStatus, setExportStatus] = useState(null);
-            const [flowiseUrl, setFlowiseUrl] = useState('');
-
-            const exportToFlowise = async () => {
+            const exportToFlowise = () => {
                 if (!result || !result.flow) return;
                 
-                setExportStatus('sending');
-                
-                try {
-                    const flowiseFlow = {
-                        ...result.flow,
-                        version: '1.0.0',
-                        metadata: {
-                            generatedBy: 'NubemGenesis Orchestrator',
-                            timestamp: new Date().toISOString(),
-                            model: result.model
-                        }
-                    };
-                    
-                    // Send flow to orchestrator backend which will forward to Flowise
-                    const response = await axios.post(
-                        `${API_URL}/api/v1/export-to-flowise`,
-                        { flow: flowiseFlow },
-                        { headers: { 'x-api-key': apiKey } }
-                    );
-                    
-                    if (response.data.success) {
-                        setExportStatus('success');
-                        
-                        if (response.data.requiresManualImport) {
-                            // If manual import is required, download the flow data
-                            const flowData = response.data.flowData;
-                            const blob = new Blob([JSON.stringify(flowData, null, 2)], { type: 'application/json' });
-                            const url = URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `${flowData.name.replace(/\s+/g, '_')}.json`;
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            URL.revokeObjectURL(url);
-                            
-                            alert('Flujo descargado. Importa este archivo en Flowise para activar el agente.');
-                            
-                            // Open Flowise in new tab
-                            setTimeout(() => {
-                                window.open(response.data.flowiseUrl, '_blank');
-                                setTimeout(() => setExportStatus(null), 3000);
-                            }, 1000);
-                        } else {
-                            // Direct integration successful
-                            const url = response.data.flowiseUrl;
-                            setFlowiseUrl(url);
-                            
-                            // Show success message
-                            if (response.data.message) {
-                                alert(response.data.message);
-                            }
-                            
-                            // Auto-open in new tab after 1.5 seconds
-                            setTimeout(() => {
-                                window.open(url, '_blank');
-                                // Reset status after opening
-                                setTimeout(() => setExportStatus(null), 3000);
-                            }, 1500);
-                        }
+                const flowiseFlow = {
+                    ...result.flow,
+                    version: '1.0.0',
+                    metadata: {
+                        generatedBy: 'NubemGenesis Orchestrator',
+                        timestamp: new Date().toISOString(),
+                        model: result.model
                     }
-                } catch (err) {
-                    setExportStatus('error');
-                    setError(err.response?.data?.error || 'Error al exportar a Flowise');
-                }
+                };
+                
+                const blob = new Blob([JSON.stringify(flowiseFlow, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${result.flow.id || 'flow'}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
             };
 
             const TabButton = ({ id, label, icon }) => (
@@ -499,31 +450,9 @@
                                             <div className="space-x-2">
                                                 <button
                                                     onClick={exportToFlowise}
-                                                    disabled={exportStatus === 'sending'}
-                                                    className={`px-4 py-2 rounded-lg transition-all flex items-center space-x-2 ${
-                                                        exportStatus === 'sending' 
-                                                            ? 'bg-blue-500 text-white cursor-wait' 
-                                                            : exportStatus === 'success'
-                                                            ? 'bg-green-500 text-white'
-                                                            : 'bg-green-600 text-white hover:bg-green-700'
-                                                    }`}
+                                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                                                 >
-                                                    {exportStatus === 'sending' ? (
-                                                        <>
-                                                            <span className="animate-spin">⏳</span>
-                                                            <span>Enviando a Flowise...</span>
-                                                        </>
-                                                    ) : exportStatus === 'success' ? (
-                                                        <>
-                                                            <span>✅</span>
-                                                            <span>Enviado - Abriendo Flowise...</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <span>🚀</span>
-                                                            <span>Enviar a Flowise</span>
-                                                        </>
-                                                    )}
+                                                    📥 Exportar a Flowise
                                                 </button>
                                                 <button
                                                     onClick={() => navigator.clipboard.writeText(JSON.stringify(result.flow, null, 2))}
