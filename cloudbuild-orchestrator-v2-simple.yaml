@@ -1,0 +1,40 @@
+# Orchestrator V2 Simplified Deployment
+steps:
+  # Build orchestrator image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'Dockerfile.orchestrator-v2-simple',
+      '-t', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest',
+      '.'
+    ]
+    id: 'build-orchestrator'
+
+  # Push image to GCR
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest']
+    waitFor: ['build-orchestrator']
+
+  # Update existing orchestrator service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'nubemgenesis-orchestrator',
+      '--image', 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--memory', '2Gi',
+      '--cpu', '1',
+      '--timeout', '300',
+      '--max-instances', '10',
+      '--set-env-vars', 'NODE_ENV=production'
+    ]
+
+# Build configuration
+timeout: 1200s
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Images
+images:
+  - 'gcr.io/$PROJECT_ID/nubemgenesis-orchestrator-v2:latest'

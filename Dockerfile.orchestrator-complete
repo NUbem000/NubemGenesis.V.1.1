@@ -14,8 +14,8 @@ WORKDIR /app
 # Copy package files
 COPY deploy-orchestrator-complete.js ./
 COPY package.json ./
-COPY packages/server/src/orchestrator ./packages/server/src/orchestrator/
-COPY packages/components/dist/nodes ./packages/components/dist/nodes/
+# Create mock directories for now
+RUN mkdir -p packages/server/src/orchestrator packages/components/dist/nodes
 
 # Install dependencies
 RUN npm install \

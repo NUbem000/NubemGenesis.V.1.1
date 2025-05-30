@@ -35,10 +35,8 @@ steps:
       '--set-env-vars', 'ENABLE_CAPABILITY_WATCHER=true',
       '--set-env-vars', 'SECURITY_LEVEL=high',
       '--set-env-vars', 'OBSERVABILITY_ENABLED=true',
-      '--set-secrets', 'OPENAI_API_KEY=openai-api-key:latest',
-      '--set-secrets', 'ANTHROPIC_API_KEY=anthropic-api-key:latest',
-      '--set-secrets', 'LANGSMITH_API_KEY=langsmith-api-key:latest',
-      '--set-secrets', 'LANGFUSE_API_KEY=langfuse-api-key:latest'
+      '--set-env-vars', 'OPENAI_API_KEY=placeholder',
+      '--set-env-vars', 'ANTHROPIC_API_KEY=placeholder'
     ]
 
   # Deploy LiteLLM proxy separately
