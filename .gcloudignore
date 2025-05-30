@@ -1,0 +1,81 @@
+# This file specifies files that are *not* uploaded to Google Cloud Platform
+# using gcloud.
+
+.gcloudignore
+.git
+.gitignore
+
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+dist/
+build/
+*.log
+
+# Test files
+**/*.test.js
+**/*.test.ts
+**/*.spec.js
+**/*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+
+# Development files
+.env.local
+.env.development
+.env.test
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Large files
+*.zip
+*.tar.gz
+*.rar
+
+# Documentation
+docs/
+api-docs/
+*.pdf
+
+# Examples
+examples/
+demos/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Other Dockerfiles
+Dockerfile.*
+!Dockerfile.v2-deploy
+
+# Backup files
+*.bak
+backup/
+backups/
+
+# Local scripts
+deploy-*.sh
+setup-*.sh
+*.local.sh

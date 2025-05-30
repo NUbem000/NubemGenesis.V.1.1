@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NubemGenesis - Agent Creator Demo</title>
+    <style>
+        :root {
+            --primary: #7C3AED;
+            --primary-dark: #6D28D9;
+            --secondary: #10B981;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --text-primary: #F1F5F9;
+            --text-secondary: #94A3B8;
+            --border: #334155;
+            --error: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .wizard-container {
+            background-color: var(--bg-card);
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            display: flex;
+            background-color: var(--bg-dark);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background-color: var(--border);
+            transform: translateY(-50%);
+            z-index: 0;
+        }
+
+        .progress-step.active:not(:last-child)::after,
+        .progress-step.completed:not(:last-child)::after {
+            background-color: var(--primary);
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--bg-card);
+            border: 2px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active .step-circle,
+        .progress-step.completed .step-circle {
+            border-color: var(--primary);
+            background-color: var(--primary);
+        }
+
+        .step-label {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .progress-step.active .step-label {
+            color: var(--text-primary);
+        }
+
+        .wizard-content {
+            padding: 2rem;
+            min-height: 400px;
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .template-card {
+            background-color: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .template-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .template-card.selected {
+            border-color: var(--primary);
+            background-color: rgba(124, 58, 237, 0.1);
+        }
+
+        .template-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            width: 24px;
+            height: 24px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .template-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .template-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .template-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .clarification-item {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .clarification-question {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 1.5rem 2rem;
+            background-color: var(--bg-dark);
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-card);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .config-preview {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .config-preview h3 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .config-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .config-section h4 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .deployment-progress {
+            margin-top: 2rem;
+        }
+
+        .deployment-step {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background-color: var(--bg-dark);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .deployment-step.active {
+            border-color: var(--primary);
+        }
+
+        .deployment-step.completed {
+            border-color: var(--success);
+        }
+
+        .deployment-step.error {
+            border-color: var(--error);
+        }
+
+        .deployment-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spinner {
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .success-icon {
+            color: var(--success);
+        }
+
+        .error-icon {
+            color: var(--error);
+        }
+
+        .credential-item {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .credential-info {
+            flex: 1;
+        }
+
+        .credential-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .credential-value {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .copy-btn {
+            padding: 0.5rem;
+            background-color: transparent;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93C5FD;
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #86EFAC;
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #FCD34D;
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #FCA5A5;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background-color: var(--bg-card);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NubemGenesis Agent Creator</h1>
+            <p>Crea agentes inteligentes en minutos con nuestra interfaz guiada</p>
+        </div>
+
+        <div class="wizard-container">
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-step active" data-step="1">
+                    <span class="step-circle">1</span>
+                    <span class="step-label">Descripción</span>
+                </div>
+                <div class="progress-step" data-step="2">
+                    <span class="step-circle">2</span>
+                    <span class="step-label">Clarificación</span>
+                </div>
+                <div class="progress-step" data-step="3">
+                    <span class="step-circle">3</span>
+                    <span class="step-label">Configuración</span>
+                </div>
+                <div class="progress-step" data-step="4">
+                    <span class="step-circle">4</span>
+                    <span class="step-label">Despliegue</span>
+                </div>
+                <div class="progress-step" data-step="5">
+                    <span class="step-circle">5</span>
+                    <span class="step-label">Credenciales</span>
+                </div>
+            </div>
+
+            <!-- Wizard Content -->
+            <div class="wizard-content">
+                <!-- Step 1: Description -->
+                <div class="step-content active" data-step="1">
+                    <h2>¿Qué tipo de agente quieres crear?</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Describe en lenguaje natural lo que necesitas o selecciona una plantilla predefinida
+                    </p>
+
+                    <div class="form-group">
+                        <label class="form-label">Descripción del agente</label>
+                        <textarea class="form-textarea" id="agentDescription" placeholder="Ejemplo: Necesito un agente que analice sentimientos en redes sociales y genere reportes semanales..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">O selecciona una plantilla:</label>
+                        <div class="template-grid">
+                            <div class="template-card" data-template="customer-support">
+                                <div class="template-icon">🤝</div>
+                                <div class="template-title">Customer Support Bot</div>
+                                <div class="template-description">Agente de soporte que responde preguntas frecuentes</div>
+                            </div>
+                            <div class="template-card" data-template="data-analyzer">
+                                <div class="template-icon">📊</div>
+                                <div class="template-title">Data Analyzer</div>
+                                <div class="template-description">Analiza datos y genera insights automáticamente</div>
+                            </div>
+                            <div class="template-card" data-template="content-creator">
+                                <div class="template-icon">✍️</div>
+                                <div class="template-title">Content Creator</div>
+                                <div class="template-description">Genera contenido para blogs y redes sociales</div>
+                            </div>
+                            <div class="template-card" data-template="code-reviewer">
+                                <div class="template-icon">👨‍💻</div>
+                                <div class="template-title">Code Reviewer</div>
+                                <div class="template-description">Revisa código y sugiere mejoras</div>
+                            </div>
+                            <div class="template-card" data-template="meeting-assistant">
+                                <div class="template-icon">📅</div>
+                                <div class="template-title">Meeting Assistant</div>
+                                <div class="template-description">Transcribe reuniones y genera resúmenes</div>
+                            </div>
+                            <div class="template-card" data-template="lead-qualifier">
+                                <div class="template-icon">🎯</div>
+                                <div class="template-title">Lead Qualifier</div>
+                                <div class="template-description">Califica leads y prioriza oportunidades</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Clarification -->
+                <div class="step-content" data-step="2">
+                    <h2>Necesitamos algunos detalles más</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Responde estas preguntas para personalizar mejor tu agente
+                    </p>
+
+                    <div id="clarificationQuestions">
+                        <!-- Questions will be dynamically added here -->
+                    </div>
+                </div>
+
+                <!-- Step 3: Configuration -->
+                <div class="step-content" data-step="3">
+                    <h2>Configuración del agente</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Revisa y ajusta la configuración generada para tu agente
+                    </p>
+
+                    <div class="config-preview" id="configPreview">
+                        <!-- Configuration will be displayed here -->
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Configuración adicional (opcional)</label>
+                        <textarea class="form-textarea" id="additionalConfig" placeholder="Añade cualquier configuración adicional en formato JSON..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 4: Deployment -->
+                <div class="step-content" data-step="4">
+                    <h2>Desplegando tu agente</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Tu agente se está configurando y desplegando automáticamente
+                    </p>
+
+                    <div class="deployment-progress" id="deploymentProgress">
+                        <div class="deployment-step" data-deployment-step="1">
+                            <div class="deployment-icon">
+                                <div class="spinner"></div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">Validando configuración</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">Verificando parámetros y dependencias</div>
+                            </div>
+                        </div>
+                        <div class="deployment-step" data-deployment-step="2">
+                            <div class="deployment-icon">
+                                <div class="spinner" style="display: none;"></div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">Creando recursos</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">Configurando infraestructura en la nube</div>
+                            </div>
+                        </div>
+                        <div class="deployment-step" data-deployment-step="3">
+                            <div class="deployment-icon">
+                                <div class="spinner" style="display: none;"></div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">Entrenando modelo</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">Ajustando parámetros del agente</div>
+                            </div>
+                        </div>
+                        <div class="deployment-step" data-deployment-step="4">
+                            <div class="deployment-icon">
+                                <div class="spinner" style="display: none;"></div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">Activando agente</div>
+                                <div style="font-size: 0.875rem; color: var(--text-secondary);">Iniciando servicios y endpoints</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5: Credentials -->
+                <div class="step-content" data-step="5">
+                    <h2>¡Tu agente está listo!</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                        Aquí están las credenciales y endpoints para acceder a tu agente
+                    </p>
+
+                    <div class="alert alert-success">
+                        <strong>✅ Agente desplegado exitosamente</strong><br>
+                        Tu agente está activo y listo para recibir solicitudes
+                    </div>
+
+                    <div id="credentialsList">
+                        <!-- Credentials will be displayed here -->
+                    </div>
+
+                    <div class="alert alert-info" style="margin-top: 2rem;">
+                        <strong>Próximos pasos:</strong>
+                        <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                            <li>Prueba tu agente usando el endpoint proporcionado</li>
+                            <li>Configura webhooks para integraciones</li>
+                            <li>Monitorea el rendimiento en el dashboard</li>
+                            <li>Ajusta parámetros según sea necesario</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Actions -->
+            <div class="wizard-actions">
+                <button class="btn btn-secondary" id="prevBtn" style="display: none;">
+                    ← Anterior
+                </button>
+                <button class="btn btn-primary" id="nextBtn">
+                    Siguiente →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Procesando...</p>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'https://nubemgenesis-v2-demo-394068846550.us-central1.run.app';
+        
+        // Wizard State
+        let currentStep = 1;
+        let wizardData = {
+            description: '',
+            template: null,
+            clarifications: {},
+            config: {},
+            deploymentId: null,
+            credentials: {}
+        };
+
+        // Template Configurations
+        const templates = {
+            'customer-support': {
+                name: 'Customer Support Bot',
+                description: 'Agente de soporte al cliente con respuestas predefinidas y escalación inteligente',
+                config: {
+                    type: 'conversational',
+                    capabilities: ['chat', 'ticket_creation', 'faq_search'],
+                    integration: 'zendesk',
+                    language: 'es',
+                    tone: 'professional'
+                }
+            },
+            'data-analyzer': {
+                name: 'Data Analyzer',
+                description: 'Analiza datasets y genera visualizaciones e insights automáticamente',
+                config: {
+                    type: 'analytical',
+                    capabilities: ['data_processing', 'visualization', 'reporting'],
+                    dataSource: 'bigquery',
+                    schedule: 'daily',
+                    outputFormat: 'dashboard'
+                }
+            },
+            'content-creator': {
+                name: 'Content Creator',
+                description: 'Genera contenido optimizado para SEO y engagement en redes sociales',
+                config: {
+                    type: 'creative',
+                    capabilities: ['writing', 'seo_optimization', 'social_media'],
+                    platforms: ['blog', 'twitter', 'linkedin'],
+                    tone: 'engaging',
+                    language: 'es'
+                }
+            },
+            'code-reviewer': {
+                name: 'Code Reviewer',
+                description: 'Revisa pull requests y sugiere mejoras de código',
+                config: {
+                    type: 'technical',
+                    capabilities: ['code_analysis', 'security_scan', 'best_practices'],
+                    languages: ['javascript', 'python', 'java'],
+                    integration: 'github',
+                    severity: 'medium'
+                }
+            },
+            'meeting-assistant': {
+                name: 'Meeting Assistant',
+                description: 'Transcribe reuniones y genera resúmenes ejecutivos con action items',
+                config: {
+                    type: 'productivity',
+                    capabilities: ['transcription', 'summarization', 'action_extraction'],
+                    integration: 'google_meet',
+                    language: 'es',
+                    summaryLength: 'concise'
+                }
+            },
+            'lead-qualifier': {
+                name: 'Lead Qualifier',
+                description: 'Califica leads automáticamente y prioriza oportunidades de venta',
+                config: {
+                    type: 'sales',
+                    capabilities: ['lead_scoring', 'enrichment', 'routing'],
+                    integration: 'salesforce',
+                    scoringModel: 'predictive',
+                    threshold: 70
+                }
+            }
+        };
+
+        // Initialize event listeners
+        document.getElementById('nextBtn').addEventListener('click', handleNext);
+        document.getElementById('prevBtn').addEventListener('click', handlePrev);
+
+        // Template selection
+        document.querySelectorAll('.template-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                wizardData.template = card.dataset.template;
+                
+                // Auto-fill description
+                const template = templates[wizardData.template];
+                document.getElementById('agentDescription').value = template.description;
+            });
+        });
+
+        // Handle next button
+        async function handleNext() {
+            if (!validateCurrentStep()) return;
+
+            if (currentStep === 1) {
+                // Save description and analyze
+                wizardData.description = document.getElementById('agentDescription').value;
+                showLoading();
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/agents/analyze`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer demo-token'
+                        },
+                        body: JSON.stringify({
+                            description: wizardData.description,
+                            template: wizardData.template
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.clarifications && data.clarifications.length > 0) {
+                        displayClarifications(data.clarifications);
+                        moveToStep(2);
+                    } else {
+                        // Skip clarifications if none needed
+                        wizardData.config = data.suggestedConfig || {};
+                        displayConfiguration();
+                        moveToStep(3);
+                    }
+                } catch (error) {
+                    console.error('Error analyzing agent:', error);
+                    // For demo, continue with mock data
+                    displayMockClarifications();
+                    moveToStep(2);
+                } finally {
+                    hideLoading();
+                }
+            } else if (currentStep === 2) {
+                // Save clarifications and generate config
+                saveClarifications();
+                showLoading();
+                
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/agents/configure`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer demo-token'
+                        },
+                        body: JSON.stringify({
+                            description: wizardData.description,
+                            template: wizardData.template,
+                            clarifications: wizardData.clarifications
+                        })
+                    });
+
+                    const data = await response.json();
+                    wizardData.config = data.config || {};
+                    displayConfiguration();
+                    moveToStep(3);
+                } catch (error) {
+                    console.error('Error configuring agent:', error);
+                    // For demo, continue with mock config
+                    generateMockConfig();
+                    displayConfiguration();
+                    moveToStep(3);
+                } finally {
+                    hideLoading();
+                }
+            } else if (currentStep === 3) {
+                // Start deployment
+                const additionalConfig = document.getElementById('additionalConfig').value;
+                if (additionalConfig) {
+                    try {
+                        const parsed = JSON.parse(additionalConfig);
+                        wizardData.config = { ...wizardData.config, ...parsed };
+                    } catch (e) {
+                        alert('Invalid JSON in additional configuration');
+                        return;
+                    }
+                }
+                
+                moveToStep(4);
+                startDeployment();
+            } else if (currentStep === 4) {
+                // Deployment complete, show credentials
+                moveToStep(5);
+            }
+        }
+
+        // Handle previous button
+        function handlePrev() {
+            if (currentStep > 1) {
+                moveToStep(currentStep - 1);
+            }
+        }
+
+        // Move to specific step
+        function moveToStep(step) {
+            // Update step content
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
+
+            // Update progress bar
+            document.querySelectorAll('.progress-step').forEach((progressStep, index) => {
+                if (index + 1 < step) {
+                    progressStep.classList.add('completed');
+                    progressStep.classList.remove('active');
+                } else if (index + 1 === step) {
+                    progressStep.classList.add('active');
+                    progressStep.classList.remove('completed');
+                } else {
+                    progressStep.classList.remove('active', 'completed');
+                }
+            });
+
+            // Update buttons
+            document.getElementById('prevBtn').style.display = step === 1 ? 'none' : 'flex';
+            document.getElementById('nextBtn').textContent = step === 5 ? 'Finalizar' : 'Siguiente →';
+            
+            if (step === 4) {
+                document.getElementById('nextBtn').style.display = 'none';
+            } else {
+                document.getElementById('nextBtn').style.display = 'flex';
+            }
+
+            currentStep = step;
+        }
+
+        // Validate current step
+        function validateCurrentStep() {
+            if (currentStep === 1) {
+                const description = document.getElementById('agentDescription').value.trim();
+                if (!description && !wizardData.template) {
+                    alert('Por favor, describe tu agente o selecciona una plantilla');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Display clarification questions
+        function displayClarifications(clarifications) {
+            const container = document.getElementById('clarificationQuestions');
+            container.innerHTML = '';
+
+            clarifications.forEach((clarification, index) => {
+                const item = document.createElement('div');
+                item.className = 'clarification-item';
+                item.innerHTML = `
+                    <div class="clarification-question">${clarification.question}</div>
+                    ${clarification.type === 'select' ? `
+                        <select class="form-select" data-clarification="${clarification.id}">
+                            <option value="">Selecciona una opción</option>
+                            ${clarification.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                        </select>
+                    ` : `
+                        <input type="text" class="form-input" data-clarification="${clarification.id}" 
+                               placeholder="${clarification.placeholder || 'Tu respuesta...'}">
+                    `}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Display mock clarifications for demo
+        function displayMockClarifications() {
+            const mockClarifications = [
+                {
+                    id: 'industry',
+                    question: '¿En qué industria operará tu agente?',
+                    type: 'select',
+                    options: ['E-commerce', 'Finanzas', 'Salud', 'Educación', 'Tecnología', 'Otro']
+                },
+                {
+                    id: 'volume',
+                    question: '¿Cuál es el volumen esperado de interacciones por día?',
+                    type: 'select',
+                    options: ['< 100', '100-1000', '1000-10000', '> 10000']
+                },
+                {
+                    id: 'integration',
+                    question: '¿Con qué sistemas necesitas integrarte?',
+                    type: 'text',
+                    placeholder: 'Ej: Slack, WhatsApp, API propia...'
+                }
+            ];
+            displayClarifications(mockClarifications);
+        }
+
+        // Save clarification answers
+        function saveClarifications() {
+            document.querySelectorAll('[data-clarification]').forEach(input => {
+                wizardData.clarifications[input.dataset.clarification] = input.value;
+            });
+        }
+
+        // Generate mock configuration
+        function generateMockConfig() {
+            if (wizardData.template) {
+                wizardData.config = templates[wizardData.template].config;
+            } else {
+                wizardData.config = {
+                    name: 'Custom Agent',
+                    type: 'general',
+                    model: 'gpt-4',
+                    temperature: 0.7,
+                    maxTokens: 2000,
+                    endpoints: {
+                        chat: '/api/agent/chat',
+                        webhook: '/api/agent/webhook'
+                    },
+                    features: {
+                        contextMemory: true,
+                        multiLanguage: true,
+                        analytics: true
+                    }
+                };
+            }
+        }
+
+        // Display configuration
+        function displayConfiguration() {
+            const container = document.getElementById('configPreview');
+            container.innerHTML = `
+                <h3>Configuración generada</h3>
+                
+                <div class="config-section">
+                    <h4>General</h4>
+                    ${Object.entries(wizardData.config).filter(([key]) => 
+                        !['endpoints', 'features', 'capabilities'].includes(key)
+                    ).map(([key, value]) => `
+                        <div class="config-item">
+                            <span>${formatKey(key)}</span>
+                            <span style="color: var(--primary)">${formatValue(value)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${wizardData.config.endpoints ? `
+                    <div class="config-section">
+                        <h4>Endpoints</h4>
+                        ${Object.entries(wizardData.config.endpoints).map(([key, value]) => `
+                            <div class="config-item">
+                                <span>${formatKey(key)}</span>
+                                <span style="font-family: monospace; font-size: 0.875rem;">${value}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                ${wizardData.config.features ? `
+                    <div class="config-section">
+                        <h4>Características</h4>
+                        ${Object.entries(wizardData.config.features).map(([key, value]) => `
+                            <div class="config-item">
+                                <span>${formatKey(key)}</span>
+                                <span>${value ? '✅ Activado' : '❌ Desactivado'}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Start deployment simulation
+        async function startDeployment() {
+            const steps = [
+                { step: 1, duration: 2000 },
+                { step: 2, duration: 3000 },
+                { step: 3, duration: 4000 },
+                { step: 4, duration: 2000 }
+            ];
+
+            for (const { step, duration } of steps) {
+                await simulateDeploymentStep(step, duration);
+            }
+
+            // Generate credentials
+            generateCredentials();
+            
+            // Show next button and move to credentials
+            document.getElementById('nextBtn').style.display = 'flex';
+            document.getElementById('nextBtn').textContent = 'Ver credenciales';
+        }
+
+        // Simulate deployment step
+        function simulateDeploymentStep(step, duration) {
+            return new Promise(resolve => {
+                const stepElement = document.querySelector(`[data-deployment-step="${step}"]`);
+                stepElement.classList.add('active');
+                
+                setTimeout(() => {
+                    stepElement.classList.remove('active');
+                    stepElement.classList.add('completed');
+                    
+                    const spinner = stepElement.querySelector('.spinner');
+                    spinner.style.display = 'none';
+                    
+                    const icon = stepElement.querySelector('.deployment-icon');
+                    icon.innerHTML = '<span class="success-icon">✓</span>';
+                    
+                    // Show next step spinner
+                    if (step < 4) {
+                        const nextStep = document.querySelector(`[data-deployment-step="${step + 1}"]`);
+                        nextStep.querySelector('.spinner').style.display = 'block';
+                    }
+                    
+                    resolve();
+                }, duration);
+            });
+        }
+
+        // Generate mock credentials
+        function generateCredentials() {
+            wizardData.credentials = {
+                agentId: generateId(),
+                apiKey: generateApiKey(),
+                endpoint: `${API_BASE_URL}/api/agents/${generateId()}`,
+                webhookUrl: `${API_BASE_URL}/webhooks/${generateId()}`,
+                dashboard: `https://dashboard.nubemgenesis.com/agents/${generateId()}`
+            };
+
+            displayCredentials();
+        }
+
+        // Display credentials
+        function displayCredentials() {
+            const container = document.getElementById('credentialsList');
+            container.innerHTML = `
+                <div class="credential-item">
+                    <div class="credential-info">
+                        <div class="credential-name">Agent ID</div>
+                        <div class="credential-value">${wizardData.credentials.agentId}</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyToClipboard('${wizardData.credentials.agentId}')">
+                        📋 Copiar
+                    </button>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-info">
+                        <div class="credential-name">API Key</div>
+                        <div class="credential-value">${wizardData.credentials.apiKey}</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyToClipboard('${wizardData.credentials.apiKey}')">
+                        📋 Copiar
+                    </button>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-info">
+                        <div class="credential-name">Endpoint</div>
+                        <div class="credential-value">${wizardData.credentials.endpoint}</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyToClipboard('${wizardData.credentials.endpoint}')">
+                        📋 Copiar
+                    </button>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-info">
+                        <div class="credential-name">Webhook URL</div>
+                        <div class="credential-value">${wizardData.credentials.webhookUrl}</div>
+                    </div>
+                    <button class="copy-btn" onclick="copyToClipboard('${wizardData.credentials.webhookUrl}')">
+                        📋 Copiar
+                    </button>
+                </div>
+                
+                <div class="credential-item">
+                    <div class="credential-info">
+                        <div class="credential-name">Dashboard</div>
+                        <div class="credential-value">${wizardData.credentials.dashboard}</div>
+                    </div>
+                    <a href="${wizardData.credentials.dashboard}" target="_blank" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        🔗 Abrir Dashboard
+                    </a>
+                </div>
+            `;
+        }
+
+        // Utility functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+
+        function generateId() {
+            return 'agent_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        function generateApiKey() {
+            return 'sk_' + Math.random().toString(36).substr(2, 32);
+        }
+
+        function formatKey(key) {
+            return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        }
+
+        function formatValue(value) {
+            if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+            if (typeof value === 'object') return JSON.stringify(value);
+            return value;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show temporary success message
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Copiado';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+            });
+        }
+
+        // Handle final button
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentStep === 5) {
+                // Reset wizard or redirect
+                if (confirm('¿Quieres crear otro agente?')) {
+                    location.reload();
+                } else {
+                    alert('¡Gracias por usar NubemGenesis Agent Creator!');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

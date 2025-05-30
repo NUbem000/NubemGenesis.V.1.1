@@ -1,35 +1,28 @@
-FROM node:20-alpine
+FROM node:18-alpine
 
-# Instalar dependencias necesarias
-RUN apk add --update --no-cache libc6-compat python3 make g++ cairo-dev pango-dev build-base curl
-
-# Configurar entorno
 WORKDIR /app
-ENV NODE_ENV=production
 
-# Instalar pnpm
-RUN npm install -g pnpm
+# Copiar el servidor standalone
+COPY v2-standalone-server.js ./server.js
 
-# Copiar archivos de configuración
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-
-# Configurar workspaces
-COPY packages/api-documentation/package.json ./packages/api-documentation/
-COPY packages/components/package.json ./packages/components/
-COPY packages/server/package.json ./packages/server/
-COPY packages/ui/package.json ./packages/ui/
+# Crear package.json mínimo
+RUN echo '{\
+  "name": "nubemgenesis-v2-demo",\
+  "version": "2.0.0",\
+  "main": "server.js",\
+  "dependencies": {\
+    "express": "^4.18.2",\
+    "cors": "^2.8.5"\
+  }\
+}' > package.json
 
 # Instalar dependencias
-RUN pnpm install --frozen-lockfile
+RUN npm install --production
 
-# Copiar código fuente
-COPY . .
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=8080
 
-# Construir la aplicación
-RUN pnpm build
+EXPOSE 8080
 
-# Exponer puerto (Cloud Run configurará la variable PORT automáticamente)
-EXPOSE 3000
-
-# Comando para iniciar la aplicación
-CMD ["pnpm", "start"]
+CMD ["node", "server.js"]

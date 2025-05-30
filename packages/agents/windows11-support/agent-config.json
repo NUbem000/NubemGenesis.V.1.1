@@ -1,0 +1,181 @@
+{
+  "agent": {
+    "id": "windows11-support-agent",
+    "name": "Windows 11 Technical Support Agent",
+    "version": "1.0.0",
+    "description": "Specialized AI agent for diagnosing and resolving Windows 11 technical issues",
+    "author": "NubemGenesis Team",
+    "languages": ["es", "en"],
+    "capabilities": {
+      "systemDiagnostics": true,
+      "scriptGeneration": true,
+      "remoteAssistance": true,
+      "documentAnalysis": true,
+      "multiModalSupport": true,
+      "knowledgeBase": true
+    },
+    "models": {
+      "primary": "gpt-4",
+      "fallback": ["claude-3-opus", "gpt-3.5-turbo"],
+      "vision": "gpt-4-vision-preview",
+      "embedding": "text-embedding-ada-002"
+    },
+    "settings": {
+      "maxIterations": 10,
+      "temperature": 0.3,
+      "confidenceThreshold": 0.85,
+      "autoEscalation": true,
+      "sessionTimeout": 3600000
+    }
+  },
+  "components": {
+    "required": [
+      "chatOpenAI",
+      "bufferMemory",
+      "webBrowser",
+      "pythonREPL",
+      "customTool",
+      "documentLoader",
+      "imageAnalyzer"
+    ],
+    "tools": [
+      {
+        "id": "windows-diagnostics",
+        "name": "Windows Diagnostics Tool",
+        "description": "Executes Windows diagnostic commands and analyzes system logs",
+        "category": "system"
+      },
+      {
+        "id": "powershell-executor",
+        "name": "PowerShell Script Executor",
+        "description": "Safely executes PowerShell scripts for troubleshooting",
+        "category": "scripting"
+      },
+      {
+        "id": "registry-analyzer",
+        "name": "Registry Analyzer",
+        "description": "Analyzes Windows Registry for common issues",
+        "category": "system"
+      },
+      {
+        "id": "event-viewer",
+        "name": "Event Viewer Parser",
+        "description": "Parses and analyzes Windows Event Logs",
+        "category": "logging"
+      },
+      {
+        "id": "driver-checker",
+        "name": "Driver Compatibility Checker",
+        "description": "Checks driver compatibility and suggests updates",
+        "category": "drivers"
+      },
+      {
+        "id": "network-diagnostics",
+        "name": "Network Diagnostics Tool",
+        "description": "Diagnoses network connectivity issues",
+        "category": "network"
+      }
+    ]
+  },
+  "knowledgeBase": {
+    "categories": [
+      {
+        "id": "boot-issues",
+        "name": "Boot and Startup Problems",
+        "priority": "high"
+      },
+      {
+        "id": "bsod",
+        "name": "Blue Screen of Death (BSOD)",
+        "priority": "critical"
+      },
+      {
+        "id": "performance",
+        "name": "Performance Issues",
+        "priority": "medium"
+      },
+      {
+        "id": "updates",
+        "name": "Windows Update Problems",
+        "priority": "high"
+      },
+      {
+        "id": "drivers",
+        "name": "Driver Issues",
+        "priority": "high"
+      },
+      {
+        "id": "network",
+        "name": "Network and Connectivity",
+        "priority": "medium"
+      },
+      {
+        "id": "security",
+        "name": "Security and Antivirus",
+        "priority": "high"
+      },
+      {
+        "id": "applications",
+        "name": "Application Crashes",
+        "priority": "medium"
+      },
+      {
+        "id": "storage",
+        "name": "Storage and File System",
+        "priority": "medium"
+      },
+      {
+        "id": "audio-video",
+        "name": "Audio and Video Problems",
+        "priority": "low"
+      }
+    ]
+  },
+  "workflows": {
+    "diagnostic": {
+      "steps": [
+        "initial_assessment",
+        "system_information_gathering",
+        "error_log_analysis",
+        "root_cause_identification",
+        "solution_generation",
+        "script_creation",
+        "user_guidance",
+        "verification"
+      ]
+    },
+    "escalation": {
+      "triggers": [
+        "hardware_failure_detected",
+        "critical_system_corruption",
+        "data_loss_risk",
+        "security_breach"
+      ],
+      "actions": [
+        "create_system_restore_point",
+        "backup_critical_data",
+        "generate_detailed_report",
+        "suggest_professional_help"
+      ]
+    }
+  },
+  "integrations": {
+    "microsoft": {
+      "knowledgeBase": true,
+      "errorDatabase": true,
+      "updateCatalog": true
+    },
+    "thirdParty": {
+      "driverDatabases": ["driverpack", "snappy-driver"],
+      "antivirus": ["windows-defender", "malwarebytes"],
+      "monitoring": ["event-viewer", "performance-monitor"]
+    }
+  },
+  "security": {
+    "sandboxExecution": true,
+    "scriptValidation": true,
+    "userConfirmation": true,
+    "auditLogging": true,
+    "dataEncryption": true
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-05-30",
+  "issues": [
+    {
+      "id": "boot-001",
+      "category": "boot-issues",
+      "title": "Windows 11 no inicia - Pantalla negra",
+      "symptoms": [
+        "Pantalla negra después del logo de Windows",
+        "Cursor visible pero sin escritorio",
+        "Sistema colgado en pantalla de carga"
+      ],
+      "causes": [
+        "Drivers de gráficos incompatibles",
+        "Actualizaciones fallidas",
+        "Archivos de sistema corruptos"
+      ],
+      "solutions": [
+        {
+          "method": "Modo Seguro",
+          "steps": [
+            "Reiniciar PC y presionar F8 o Shift+F8",
+            "Seleccionar 'Modo Seguro con funciones de red'",
+            "Desinstalar últimas actualizaciones o drivers"
+          ],
+          "script": "bcdedit /set {default} safeboot minimal"
+        },
+        {
+          "method": "Reparación de Sistema",
+          "steps": [
+            "Bootear desde USB de Windows 11",
+            "Seleccionar 'Reparar el equipo'",
+            "Ir a 'Solucionar problemas' > 'Opciones avanzadas'",
+            "Ejecutar 'Reparación de inicio'"
+          ],
+          "script": "sfc /scannow && dism /online /cleanup-image /restorehealth"
+        }
+      ],
+      "preventiveMeasures": [
+        "Crear puntos de restauración antes de actualizaciones",
+        "Mantener drivers actualizados",
+        "Realizar backups regulares"
+      ]
+    },
+    {
+      "id": "bsod-001",
+      "category": "bsod",
+      "title": "BSOD - SYSTEM_SERVICE_EXCEPTION",
+      "symptoms": [
+        "Pantalla azul con código SYSTEM_SERVICE_EXCEPTION",
+        "Reinicio automático del sistema",
+        "Pérdida de trabajo no guardado"
+      ],
+      "causes": [
+        "Drivers incompatibles o corruptos",
+        "Conflictos de software",
+        "Problemas de memoria RAM"
+      ],
+      "solutions": [
+        {
+          "method": "Análisis de Drivers",
+          "steps": [
+            "Abrir Administrador de dispositivos",
+            "Buscar dispositivos con advertencias",
+            "Actualizar o revertir drivers problemáticos"
+          ],
+          "script": "verifier /standard /all"
+        },
+        {
+          "method": "Test de Memoria",
+          "steps": [
+            "Ejecutar Windows Memory Diagnostic",
+            "Reiniciar y esperar resultados",
+            "Reemplazar módulos defectuosos si es necesario"
+          ],
+          "script": "mdsched.exe"
+        }
+      ],
+      "diagnosticCommands": [
+        "Get-EventLog -LogName System -EntryType Error -Newest 20",
+        "Get-WinEvent -FilterHashtable @{LogName='System'; Level=2} | Select-Object -First 10"
+      ]
+    },
+    {
+      "id": "perf-001",
+      "category": "performance",
+      "title": "Windows 11 lento - Alto uso de CPU/Memoria",
+      "symptoms": [
+        "Sistema muy lento",
+        "Ventiladores a máxima velocidad",
+        "Programas tardan en abrir",
+        "Congelamiento frecuente"
+      ],
+      "causes": [
+        "Procesos en segundo plano consumiendo recursos",
+        "Malware o virus",
+        "Fragmentación del disco",
+        "Programas de inicio excesivos"
+      ],
+      "solutions": [
+        {
+          "method": "Optimización de Inicio",
+          "steps": [
+            "Abrir Administrador de tareas (Ctrl+Shift+Esc)",
+            "Ir a pestaña 'Inicio'",
+            "Deshabilitar programas innecesarios",
+            "Reiniciar el sistema"
+          ],
+          "script": "Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location"
+        },
+        {
+          "method": "Limpieza de Sistema",
+          "steps": [
+            "Ejecutar Liberador de espacio en disco",
+            "Limpiar archivos temporales",
+            "Desfragmentar disco duro (si no es SSD)"
+          ],
+          "script": "cleanmgr /sagerun:1"
+        },
+        {
+          "method": "Análisis de Procesos",
+          "script": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10 Name, CPU, WorkingSet"
+        }
+      ]
+    },
+    {
+      "id": "update-001",
+      "category": "updates",
+      "title": "Error en Windows Update - 0x80070002",
+      "symptoms": [
+        "Windows Update falla con error 0x80070002",
+        "Actualizaciones se descargan pero no se instalan",
+        "Sistema solicita reinicio constante"
+      ],
+      "causes": [
+        "Archivos de actualización corruptos",
+        "Servicios de Windows Update detenidos",
+        "Espacio insuficiente en disco"
+      ],
+      "solutions": [
+        {
+          "method": "Reset Windows Update",
+          "steps": [
+            "Detener servicios de Windows Update",
+            "Eliminar carpetas de caché",
+            "Reiniciar servicios",
+            "Buscar actualizaciones nuevamente"
+          ],
+          "script": "net stop wuauserv\nnet stop cryptSvc\nnet stop bits\nnet stop msiserver\nren C:\\Windows\\SoftwareDistribution SoftwareDistribution.old\nren C:\\Windows\\System32\\catroot2 catroot2.old\nnet start wuauserv\nnet start cryptSvc\nnet start bits\nnet start msiserver"
+        },
+        {
+          "method": "Troubleshooter",
+          "steps": [
+            "Ir a Configuración > Actualización y seguridad",
+            "Ejecutar solucionador de problemas de Windows Update",
+            "Aplicar correcciones sugeridas"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "driver-001",
+      "category": "drivers",
+      "title": "Dispositivo no reconocido - Driver faltante",
+      "symptoms": [
+        "Dispositivo con signo de exclamación en Administrador",
+        "Hardware no funciona correctamente",
+        "Código de error 28 o 31"
+      ],
+      "solutions": [
+        {
+          "method": "Actualización Automática",
+          "steps": [
+            "Click derecho en dispositivo problemático",
+            "Seleccionar 'Actualizar controlador'",
+            "Buscar automáticamente"
+          ],
+          "script": "pnputil /scan-devices"
+        },
+        {
+          "method": "Instalación Manual",
+          "steps": [
+            "Identificar ID de hardware del dispositivo",
+            "Buscar driver en sitio del fabricante",
+            "Instalar manualmente"
+          ],
+          "script": "Get-PnpDevice | Where-Object {$_.Status -ne 'OK'} | Select-Object FriendlyName, InstanceId, Status"
+        }
+      ]
+    },
+    {
+      "id": "network-001",
+      "category": "network",
+      "title": "Sin conexión a Internet - WiFi/Ethernet",
+      "symptoms": [
+        "No hay acceso a Internet",
+        "Icono de red con advertencia",
+        "No se puede obtener dirección IP"
+      ],
+      "solutions": [
+        {
+          "method": "Reset de Red",
+          "steps": [
+            "Abrir CMD como administrador",
+            "Ejecutar comandos de reset",
+            "Reiniciar PC"
+          ],
+          "script": "netsh winsock reset\nnetsh int ip reset\nipconfig /release\nipconfig /renew\nipconfig /flushdns"
+        },
+        {
+          "method": "Diagnóstico de Red",
+          "script": "Get-NetAdapter | Select-Object Name, Status, LinkSpeed\nTest-NetConnection google.com -Port 80"
+        }
+      ]
+    },
+    {
+      "id": "security-001",
+      "category": "security",
+      "title": "Windows Defender desactivado - No se puede activar",
+      "symptoms": [
+        "Windows Defender aparece desactivado",
+        "Mensaje de 'administrado por organización'",
+        "No se pueden cambiar configuraciones de seguridad"
+      ],
+      "causes": [
+        "Políticas de grupo modificadas",
+        "Antivirus de terceros interferiendo",
+        "Malware desactivando protección"
+      ],
+      "solutions": [
+        {
+          "method": "Restaurar Windows Defender",
+          "steps": [
+            "Verificar y eliminar antivirus de terceros",
+            "Ejecutar comandos de restauración",
+            "Reiniciar servicios de seguridad"
+          ],
+          "script": "Set-MpPreference -DisableRealtimeMonitoring $false\nStart-Service WinDefend\nGet-Service WinDefend"
+        },
+        {
+          "method": "Escaneo de Malware",
+          "steps": [
+            "Bootear en modo seguro",
+            "Ejecutar Windows Defender Offline",
+            "Realizar escaneo completo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "app-001",
+      "category": "applications",
+      "title": "Aplicaciones se cierran inesperadamente",
+      "symptoms": [
+        "Programas se cierran sin aviso",
+        "Mensajes de error de aplicación",
+        "Eventos en visor de eventos"
+      ],
+      "solutions": [
+        {
+          "method": "Reparar Aplicación",
+          "steps": [
+            "Configuración > Aplicaciones",
+            "Buscar aplicación problemática",
+            "Click en 'Opciones avanzadas' > 'Reparar'"
+          ]
+        },
+        {
+          "method": "Análisis de Compatibilidad",
+          "script": "Get-AppxPackage | Where-Object {$_.PackageUserInformation.InstallState -eq 'Staged'}"
+        }
+      ]
+    },
+    {
+      "id": "storage-001",
+      "category": "storage",
+      "title": "Disco al 100% de uso constantemente",
+      "symptoms": [
+        "Disco duro al 100% en Administrador de tareas",
+        "Sistema extremadamente lento",
+        "Archivos tardan en abrir"
+      ],
+      "causes": [
+        "Windows Search indexando",
+        "Superfetch/SysMain",
+        "Antivirus escaneando",
+        "Disco duro defectuoso"
+      ],
+      "solutions": [
+        {
+          "method": "Optimizar Servicios",
+          "steps": [
+            "Deshabilitar SysMain temporalmente",
+            "Ajustar Windows Search",
+            "Verificar salud del disco"
+          ],
+          "script": "Stop-Service 'SysMain' -Force\nSet-Service 'SysMain' -StartupType Disabled\nGet-PhysicalDisk | Get-StorageReliabilityCounter"
+        },
+        {
+          "method": "Verificar Salud del Disco",
+          "script": "chkdsk C: /f /r /x"
+        }
+      ]
+    },
+    {
+      "id": "audio-001",
+      "category": "audio-video",
+      "title": "Sin sonido después de actualización",
+      "symptoms": [
+        "No hay salida de audio",
+        "Icono de volumen con X roja",
+        "Dispositivos de audio no detectados"
+      ],
+      "solutions": [
+        {
+          "method": "Troubleshooter de Audio",
+          "steps": [
+            "Click derecho en icono de volumen",
+            "Solucionar problemas de sonido",
+            "Seguir las instrucciones"
+          ]
+        },
+        {
+          "method": "Reinstalar Drivers de Audio",
+          "script": "Get-PnpDevice | Where-Object {$_.Class -eq 'AudioEndpoint'} | Disable-PnpDevice -Confirm:$false\nGet-PnpDevice | Where-Object {$_.Class -eq 'AudioEndpoint'} | Enable-PnpDevice -Confirm:$false"
+        }
+      ]
+    }
+  ],
+  "commonScripts": {
+    "systemInfo": "Get-ComputerInfo | Select-Object CsName, WindowsVersion, WindowsBuildLabEx, OsArchitecture, OsTotalVisibleMemorySize",
+    "errorLogs": "Get-WinEvent -FilterHashtable @{LogName='System','Application'; Level=1,2; StartTime=(Get-Date).AddDays(-7)} | Select-Object TimeCreated, Id, LevelDisplayName, Message -First 50",
+    "diskHealth": "Get-PhysicalDisk | Select-Object FriendlyName, MediaType, OperationalStatus, HealthStatus, Size",
+    "systemRestore": "Enable-ComputerRestore -Drive 'C:\\'\nCheckpoint-Computer -Description 'NubemGenesis Support Restore Point' -RestorePointType 'MODIFY_SETTINGS'",
+    "networkReset": "netsh winsock reset catalog\nnetsh int ipv4 reset reset.log\nnetsh int ipv6 reset reset.log"
+  },
+  "safetyWarnings": {
+    "registry": "⚠️ Modificar el registro puede dañar el sistema. Crear backup antes de cambios.",
+    "systemFiles": "⚠️ No eliminar archivos del sistema sin confirmación.",
+    "drivers": "⚠️ Crear punto de restauración antes de actualizar drivers críticos.",
+    "diskOperations": "⚠️ Operaciones de disco pueden causar pérdida de datos. Realizar backup primero."
+  }
+}
