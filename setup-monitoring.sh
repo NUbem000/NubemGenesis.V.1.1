@@ -5,7 +5,7 @@
 PROJECT_ID="nubemgenesis"
 SERVICE_NAME="nubemgenesis-orchestrator"
 LOCATION="us-central1"
-NOTIFICATION_EMAIL="alerts@nubemgenesis.com"
+NOTIFICATION_EMAIL="nubemgenesis@nubemsystems.es"
 
 echo "Setting up monitoring and alerting for NubemGenesis Orchestrator..."
 
